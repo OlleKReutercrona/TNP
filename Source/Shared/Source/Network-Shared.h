@@ -1,0 +1,5 @@
+#pragma once
+
+#define NETMESSAGE_SIZE 512
+#define USERNAME_MAX_LENGTH 32
+#define MESSAGE_MAX_SIZE 256

@@ -1,5 +1,8 @@
 #pragma once
 
+class PlayerController;
+class Player;
+
 class GameWorld
 {
 public:
@@ -10,5 +13,8 @@ public:
 	void Update(float aTimeDelta); 
 	void Render();
 private:
+
+	Player* myPlayer;
+	PlayerController* myController;
 
 };

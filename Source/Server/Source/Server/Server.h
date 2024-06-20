@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <future>
+#include <CircularBuffer.h>
 
 #include <WinSock2.h>
 #include "Network-Shared.h"
@@ -13,6 +14,10 @@ struct ClientData
 	std::string name;
 	//std::string connectionIP;
 	sockaddr_in sockaddr;
+	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer;
+
+	// Game Specific Data
+	Tga::Vector2f position;
 };
 
 #define SERVER_FAILED -1
@@ -51,6 +56,8 @@ public:
 	int Shutdown();
 
 private:
+	void ProcessMessage(char* aMessage, sockaddr_in& someInformation);
+
 	TNP::MessageType DetermineMessageType();
 
 	void HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort);
@@ -62,18 +69,19 @@ private:
 
 
 	// Data members
-	std::map<int, int> myPortToID;
-	std::unordered_map<int, ClientData> myConnectedClients;
+	std::map<int, int> myPortToID = {};
+	std::unordered_map<int, ClientData> myConnectedClients = {};
+	//std::map<int, TNP::CircularBuffer <TNP::Message>> myBuffers = {};
 
-	std::thread myInputThread;
+	std::thread myInputThread = {};
 
 	// Network members
-	SOCKET myUDPSocket;
-	WSADATA myWinSockData;
+	SOCKET myUDPSocket = {};
+	WSADATA myWinSockData = {};
 
-	sockaddr_in myBindAddressInformation;
-	sockaddr_in myClientAddressInformation;
+	sockaddr_in myBindAddressInformation = {};
+	//sockaddr_in myClientAddressInformation = {};
 
-	int myAddrClientSize = sizeof(myClientAddressInformation);
-	char mySocketBuffer[NETMESSAGE_SIZE];
+	//int myAddrClientSize = sizeof(myClientAddressInformation);
+	//char mySocketBuffer[NETMESSAGE_SIZE] = {0};
 };

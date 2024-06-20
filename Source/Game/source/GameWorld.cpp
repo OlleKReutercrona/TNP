@@ -8,6 +8,9 @@
 
 #include <tge/text/text.h>
 
+#include "Player.h"
+#include "PlayerController.h"
+
 
 GameWorld::GameWorld()
 {}
@@ -20,9 +23,20 @@ void GameWorld::Init()
 	auto& engine = *Tga::Engine::GetInstance();
 
 	Tga::Vector2ui resUI = engine.GetRenderSize();
+
+	Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
+	myPlayer = new Player();
+	myPlayer->Init(startPosition);
+	myController = new PlayerController(myPlayer,0);
+
+
 }
-void GameWorld::Update(float /*aTimeDelta*/)
+void GameWorld::Update(float aTimeDelta)
 {
+	myController->Update(aTimeDelta);
+
+
+
 	// Recieve message from server
 	// handle
 
@@ -37,6 +51,7 @@ void GameWorld::Render()
 	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	// Game update
 	{
-		spriteDrawer;
+		myPlayer->Render(spriteDrawer);
 	}
+	//Tga::SpriteSharedData;
 }

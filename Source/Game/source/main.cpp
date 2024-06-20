@@ -40,10 +40,12 @@ void Go()
 	winconf.myEnableVSync = false;
 
 	winconf.myWindowSize = { 800, 800 };
+	winconf.myTargetSize = { 800, 800 };
+	winconf.myRenderSize = { 800, 800 };
 
 
 #ifdef _DEBUG
-	winconf.myActivateDebugSystems = Tga::DebugFeature::None;
+	winconf.myActivateDebugSystems = Tga::DebugFeature::Fps;
 
 	//winconf.myActivateDebugSystems = Tga::DebugFeature::Fps | Tga::DebugFeature::Mem | Tga::DebugFeature::Filewatcher | Tga::DebugFeature::Cpu | Tga::DebugFeature::Drawcalls | Tga::DebugFeature::OptimizeWarnings;
 #else
@@ -72,9 +74,9 @@ void Go()
 		{
 			timeSinceLastTick += engine.GetDeltaTime();
 
+			gameWorld.Update(engine.GetDeltaTime());
 			if (timeSinceLastTick >= tickTimeStep)
 			{
-				gameWorld.Update(engine.GetDeltaTime());
 				timeSinceLastTick = 0.0f;
 			}
 

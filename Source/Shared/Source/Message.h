@@ -1,19 +1,27 @@
 #pragma once
 #include <string>
+#include "Network-Shared.h"
 
 namespace TNP
 {
 	enum class MessageType
 	{
-		error,								// Something went wrong
+		error,
+		
+		//Client							// Something went wrong
 		clientJoin,							// Sent from client when requesting to join
 		clientDisconnect,					// Sent from client to tell server that they disconnected
 		clientMessage,						// Message sent from client to server
+		clientSendPosition,					
+
+
+		//Server
 		serverConnectedClientData,
 		serverClientJoined,					// Sent from server to all clients to allert them that another client joined
 		serverClientDisconnected,			// Sent from server to all clients to allert them that another client disconnected
 		serverClientMessage,				// Message sent from a client and then being forwarded from server to all the other clients
 		serverBundle,
+
 	};
 
 	// ___int to char___

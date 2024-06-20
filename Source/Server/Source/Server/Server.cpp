@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Server\Server.h"
 #include <Message.h>
 #include <iostream>
@@ -115,6 +116,9 @@ int Server::Run()
 
 	std::cout << "\nMessage Log: " << std::endl;
 
+	sockaddr_in clientAddressInformation = {};
+	static int clientAddrSize = sizeof(clientAddressInformation);
+	char mySocketBuffer[NETMESSAGE_SIZE];
 
 	while (isRunning)
 	{
@@ -122,7 +126,7 @@ int Server::Run()
 		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
 
 		// blocking receive. This function will block until a message is received.
-		const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&myClientAddressInformation, &myAddrClientSize);
+		const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&clientAddressInformation, &clientAddrSize);
 		if (recv_len == SOCKET_ERROR)
 		{
 			std::cout << "Failed receiving data from socket." << std::endl;
@@ -131,110 +135,147 @@ int Server::Run()
 
 		if (recv_len > 0)
 		{
-			// Extract the address information from the incoming data.
-			// 16 bytes is enough for an IPv4 address.
-			// i.e. "xxx.xxx.xxx.xxx" + string terminator
-			char clientAddress[16]{ 0 };
-			inet_ntop(AF_INET, &myClientAddressInformation.sin_addr, &clientAddress[0], 16);
-			const int clientPort = ntohs(myClientAddressInformation.sin_port);
-
-			TNP::MessageType type = DetermineMessageType();
-
-			switch (type)
-			{
-			case TNP::MessageType::error:
-				break;
-			case TNP::MessageType::clientJoin:
-			{
-				TNP::ClientJoin message = *(TNP::ClientJoin*)&mySocketBuffer;
-
-				const int clientID = CreateID(clientPort);
-
-				ClientData client;
-				client.myServerID = clientID;
-				client.name = message.username;
-				client.sockaddr = myClientAddressInformation;
-
-				myConnectedClients[clientID] = client;
-
-				TNP::ServerClientJoined msg;
-				msg.id = clientID;
-
-				strcpy_s(msg.username, USERNAME_MAX_LENGTH, client.name.c_str());
-
-				//memcpy(msg.username, client.name.c_str(), sizeof(char) * client.name.length());
-				//msg.username = client.name;
-
-				std::cout << "Client " << client.name << " has joined the server." << std::endl;
-
-				SendMessageToAllClients(msg, sizeof(msg), clientID);
-
-				if (myConnectedClients.size() > 1)
-				{
-					TNP::ServerConnectedClientData connectionMessage;
-					connectionMessage.numberOfClients = (int)myConnectedClients.size() - 1;
-
-					//char* ptr = &connectionMessage.clients[0];
-
-					int index = 0;
-
-					for (auto& conClient : myConnectedClients)
-					{
-						if (conClient.second.myServerID == clientID) continue;
-
-						memcpy(&connectionMessage.clients[index], &conClient.second.myServerID, sizeof(int));
-						index += sizeof(int);
-
-						char* username = (char*)conClient.second.name.c_str();
-						memcpy(&connectionMessage.clients[index], username, USERNAME_MAX_LENGTH);
-						index += USERNAME_MAX_LENGTH;
-					}
-
-					SendMessageToAClient(connectionMessage, sizeof(connectionMessage), client.myServerID);
-				}
-
-				break;
-			}
-			case TNP::MessageType::clientDisconnect:
-			{
-				TNP::ClientDisconnect message = *(TNP::ClientDisconnect*)&mySocketBuffer;
-
-				TNP::ServerClientDisconnected msg;
-				msg.id = myPortToID[clientPort];
-
-				HandleClientDisconnect(message, clientPort);
-
-				SendMessageToAllClients(msg, sizeof(msg));
-
-				break;
-			}
-			case TNP::MessageType::clientMessage:
-			{
-				TNP::ClientMessage message = *(TNP::ClientMessage*)&mySocketBuffer;
-
-				const int clientID = myPortToID[clientPort];
-
-				std::string printmsg = "[" + myConnectedClients[clientID].name + "] " + message.message;
-
-				TNP::ServerClientMessage msg;
-				msg.id = clientID;
-
-				strcpy_s(msg.message, MESSAGE_MAX_SIZE, message.message);
-
-				//msg.msgSize = sizeof(printmsg);
-				//memcpy(msg.message, printmsg.data(), sizeof(printmsg));
-
-				std::cout << printmsg << std::endl;
-
-				SendMessageToAllClients(msg, sizeof(msg), clientID);
-
-				break;
-			}
-			}
+			ProcessMessage(mySocketBuffer, clientAddressInformation);
 		}
 	}
 
 	return SERVER_QUIT;
+}
+
+void Server::ProcessMessage(char* aMessage, sockaddr_in& someInformation)
+{
+	// Extract the address information from the incoming data.
+			// 16 bytes is enough for an IPv4 address.
+			// i.e. "xxx.xxx.xxx.xxx" + string terminator
+	char clientAddress[16]{ 0 };
+	inet_ntop(AF_INET, &someInformation.sin_addr, &clientAddress[0], 16);
+	const int clientPort = ntohs(someInformation.sin_port);
+
+	TNP::MessageType type = DetermineMessageType();
+
+	switch (type)
+	{
+	case TNP::MessageType::error:
+		break;
+	case TNP::MessageType::clientJoin:
+	{
+		TNP::ClientJoin message;
+		message.Deserialize(aMessage);
+
+		//TNP::ClientJoin message = *(TNP::ClientJoin*)&aMessage;
+
+		const int clientID = CreateID(clientPort);
+
+		ClientData client;
+		client.myServerID = clientID;
+		client.name = message.username;
+		client.sockaddr = someInformation;
+
+		myConnectedClients[clientID] = client;
+
+		TNP::ServerClientJoined msg;
+		msg.id = clientID;
+
+		strcpy_s(msg.username, USERNAME_MAX_LENGTH, client.name.c_str());
+
+		//memcpy(msg.username, client.name.c_str(), sizeof(char) * client.name.length());
+		//msg.username = client.name;
+
+		std::cout << "Client " << client.name << " has joined the server." << std::endl;
+
+		SendMessageToAllClients(msg, sizeof(msg), clientID);
+
+		if (myConnectedClients.size() > 1)
+		{
+			TNP::ServerConnectedClientData connectionMessage;
+			connectionMessage.numberOfClients = (int)myConnectedClients.size() - 1;
+
+			//char* ptr = &connectionMessage.clients[0];
+
+			int index = 0;
+
+			for (auto& conClient : myConnectedClients)
+			{
+				if (conClient.second.myServerID == clientID) continue;
+
+				memcpy(&connectionMessage.clients[index], &conClient.second.myServerID, sizeof(int));
+				index += sizeof(int);
+
+				char* username = (char*)conClient.second.name.c_str();
+				memcpy(&connectionMessage.clients[index], username, USERNAME_MAX_LENGTH);
+				index += USERNAME_MAX_LENGTH;
+			}
+
+			SendMessageToAClient(connectionMessage, sizeof(connectionMessage), client.myServerID);
+		}
+
+		break;
+	}
+	case TNP::MessageType::clientDisconnect:
+	{
+		TNP::ClientDisconnect message;
+		message.Deserialize(aMessage);
+		//TNP::ClientDisconnect message = *(TNP::ClientDisconnect*)&aMessage;
+
+		TNP::ServerClientDisconnected msg;
+		msg.id = myPortToID[clientPort];
+
+		HandleClientDisconnect(message, clientPort);
+
+		SendMessageToAllClients(msg, sizeof(msg));
+
+		break;
+	}
+	case TNP::MessageType::clientMessage:
+	{
+		// Maybe not used after assignment 2
+
+		TNP::ClientMessage message;
+		message.Deserialize(aMessage);
+		//TNP::ClientMessage message = *(TNP::ClientMessage*)&aMessage;
+
+		const int clientID = myPortToID.at(clientPort);
+
+		std::string printmsg = "[" + myConnectedClients.at(clientID).name + "] " + message.message;
+
+		TNP::ServerClientMessage msg;
+		msg.id = clientID;
+
+		strcpy_s(msg.message, MESSAGE_MAX_SIZE, message.message);
+
+		//msg.msgSize = sizeof(printmsg);
+		//memcpy(msg.message, printmsg.data(), sizeof(printmsg));
+
+		std::cout << printmsg << std::endl;
+
+		SendMessageToAllClients(msg, sizeof(msg), clientID);
+
+		break;
+	}
+	case TNP::MessageType::clientSendPosition:
+	{
+		TNP::ClientMovedMessage message;
+		message.Deserialize(aMessage);
+
+		const int clientID = myPortToID.at(clientPort);
+
+		// Verify that client position is okay
+		if (true)
+		{
+			// Position is okay, maybe handle it?
+
+			myConnectedClients.at(clientID).position = message.position;
+			break;
+		}
+
+		// Position was not okay, handle it?
+
+		// TODO - HANDLE IT OLLE
+
+
+		break;
+	}
+	}
 }
 
 int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip)
@@ -280,36 +321,6 @@ int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessag
 
 	return 0;
 }
-//
-//void Server::DEBUGMessageValidator(const char*& aMessage, const int /*aSize*/)
-//{
-//	TNP::Message* message = (TNP::Message*)aMessage;
-//
-//	switch (message->type)
-//	{
-//	case TNP::MessageType::serverClientDisconnected:
-//	{
-//		TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)&message;
-//		break;
-//	}
-//	case TNP::MessageType::serverClientJoined:
-//	{
-//		TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)&message;
-//
-//		break;
-//	}
-//	case TNP::MessageType::serverClientMessage:
-//	{
-//		TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)&message;
-//
-//		std::string copyMSG = msg->message;
-//
-//		break;
-//	}
-//	default:
-//		break;
-//	}
-//}
 
 int Server::Shutdown()
 {
@@ -319,10 +330,12 @@ int Server::Shutdown()
 	return SERVER_QUIT;
 }
 
-TNP::MessageType Server::DetermineMessageType()
-{
-	return *(TNP::MessageType*)&mySocketBuffer[0];
-}
+
+
+//TNP::MessageType Server::DetermineMessageType()
+//{
+//	return *(TNP::MessageType*)&mySocketBuffer[0];
+//}
 
 
 void Server::HandleClientDisconnect(TNP::ClientDisconnect& /*aMessage*/, const int aClientPort)

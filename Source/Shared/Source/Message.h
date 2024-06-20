@@ -39,6 +39,9 @@ namespace TNP
 
 	public:
 		const MessageType type;
+		const unsigned int messageID = 0;
+
+		virtual void Deserialize(const char* aRawMessage) = 0;
 	};
 
 
@@ -46,34 +49,76 @@ namespace TNP
 	{
 		ClientJoin() : Message(MessageType::clientJoin) {}
 
-		char username[USERNAME_MAX_LENGTH];
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ClientJoin* msg = (TNP::ClientJoin*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientJoin));
+		}
+
+		char username[USERNAME_MAX_LENGTH] = { 0 };
 	};
 
 	struct ClientDisconnect : public Message
 	{
 		ClientDisconnect() : Message(MessageType::clientDisconnect) {}
+
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ClientDisconnect* msg = (TNP::ClientDisconnect*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientDisconnect));
+		}
 	};
 
 	struct ClientMessage : public Message
 	{
 		ClientMessage() : Message(MessageType::clientMessage) {}
 
-		char message[MESSAGE_MAX_SIZE];
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ClientMessage* msg = (TNP::ClientMessage*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientMessage));
+		}
+
+		char message[MESSAGE_MAX_SIZE] = { 0 };
+	};
+
+	struct ClientMovedMessage : public Message
+	{
+		ClientMovedMessage() : Message(MessageType::clientSendPosition) {}
+
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientMovedMessage));
+		}
+
+		Tga::Vector2f position;
 	};
 
 	struct ServerConnectedClientData : public Message
 	{
 		ServerConnectedClientData() : Message(MessageType::serverConnectedClientData) {}
 
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ServerConnectedClientData* msg = (TNP::ServerConnectedClientData*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ServerConnectedClientData));
+		}
+
 		struct clientData
 		{
-			int id;
-			char username[USERNAME_MAX_LENGTH];
+			int id = -1;
+			char username[USERNAME_MAX_LENGTH] = { 0 };
 			// 36 Bytes
 		};
 
 		int numberOfClients = 0;
-		char clients[MESSAGE_MAX_SIZE];
+		char clients[MESSAGE_MAX_SIZE] = { 0 };
 		//std::vector<clientData> clients;
 	};
 
@@ -81,13 +126,27 @@ namespace TNP
 	{
 		ServerClientJoined() : Message(MessageType::serverClientJoined) {}
 
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ServerClientJoined));
+		}
+
 		int id = -1;
-		char username[USERNAME_MAX_LENGTH];
+		char username[USERNAME_MAX_LENGTH] = { 0 };
 	};
 
 	struct ServerClientDisconnected : public Message
 	{
 		ServerClientDisconnected() : Message(MessageType::serverClientDisconnected) {}
+
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ServerClientDisconnected));
+		}
 
 		int id = -1;
 	};
@@ -96,16 +155,23 @@ namespace TNP
 	{
 		ServerClientMessage() : Message(MessageType::serverClientMessage) {}
 
+		void Deserialize(const char* aRawMessage) override
+		{
+			TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ServerClientMessage));
+		}
+
 		int id = -1;
-		char message[MESSAGE_MAX_SIZE];
+		char message[MESSAGE_MAX_SIZE] = { 0 };
 	};
 
 	struct ServerMessageBundle : public Message
 	{
 		ServerMessageBundle() : Message(MessageType::serverBundle) {}
 
-		int numberOfMessages;
-		int messageIndex;
-		char messages[NETMESSAGE_SIZE - sizeof(int) * 2 - sizeof(MessageType)];
+		int numberOfMessages = -1;
+		int messageIndex = -1;
+		char messages[NETMESSAGE_SIZE] = { 0 };
 	};
 }

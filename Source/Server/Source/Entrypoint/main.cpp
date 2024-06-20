@@ -1,10 +1,36 @@
 #include "Server\Server.h"
 #include <iostream>
 
+#include "Message.h"
+#include "CircularBuffer.h"
+
 int main()
 {
-/*	TestSomething test;
-	test.Hej();*/
+	//TNP::CircularBuffer<TNP::Message> cBuffer;
+
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	TNP::ClientMessage* msg = new TNP::ClientMessage();
+
+	//	std::string messageStr = "Hej " + std::to_string(i);
+	//	for (int j = 0; j < messageStr.length(); j++)
+	//	{
+	//		msg->message[j] = messageStr[j];
+	//	}
+
+	//	cBuffer.Add(msg);
+	//}
+
+	//auto& buffer = cBuffer.GetAll();
+	//for (int i = 0; i < NUM_OF_OBJECTS; i++)
+	//{
+	//	TNP::Message* msg = buffer[i];
+	//	TNP::ClientMessage* clientMsg = static_cast<TNP::ClientMessage*>(msg);
+
+	//	std::string str(clientMsg->message);
+
+	//	std::cout << ("Slot %i", i) << " has value: "  << str << "\n";
+	//}
 
 	Server server;
 	int ID = server.CreateID(0);

@@ -1,18 +1,35 @@
 include "../../Premake/common.lua"
 
-project "TNP - Shared"
+project "TNP - UnitTest"
 	location(dirs.projectfiles)
 	language "C++"
 	cppdialect "C++17"
-	kind "ConsoleApp"
+	kind "SharedLib"
 
 	files {
-		dirs.shared.."**.h",
-		dirs.shared.."**.cpp",
-		dirs.shared.."**.hpp",
+		dirs.unitTest.."**.h",
+		dirs.unitTest.."**.cpp",
+		dirs.unitTest.."**.hpp",
 	}
 
-	libdirs { dirs.lib, dirs.dependencies }
+	includedirs { 
+		"$(VCInstallDir)Auxiliary/VS/UnitTest/include",
+		dirs.engine,
+		dirs.game,
+	}
+
+
+	libdirs { 
+		dirs.lib, 
+		dirs.dependencies,
+		"$(VCInstallDir)Auxiliary/VS/UnitTest/lib" 
+	}
+
+
+	debugdir "%{dirs.bin}"
+	targetdir ("%{dirs.bin}")
+	targetname("%{prj.name}_%{cfg.buildcfg}")
+	objdir ("%{dirs.temp}/%{prj.name}/%{cfg.buildcfg}")
 
 	filter "configurations:Debug"
 		defines {"_DEBUG"}

@@ -12,6 +12,14 @@ project "TNP - Shared"
 		dirs.shared.."**.hpp",
 	}
 
+	includedirs { 
+		dirs.external,  
+		dirs.engine, 
+		dirs.server .. "/Source", 
+		dirs.game.. "/Source",
+		dirs.shared.. "/Source", 
+	}
+
 	libdirs { dirs.lib, dirs.dependencies }
 
 	filter "configurations:Debug"

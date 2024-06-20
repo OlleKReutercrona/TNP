@@ -1,9 +1,14 @@
-#include "../Server/Server.h"
+#include "Server\Server.h"
 #include <iostream>
 
 int main()
 {
+/*	TestSomething test;
+	test.Hej();*/
+
 	Server server;
+	int ID = server.CreateID(0);
+	std::cout << ID << "\n";
 
 	if (S_FAIL(server.Start()))
 	{

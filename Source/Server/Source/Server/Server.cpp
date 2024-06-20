@@ -1,8 +1,7 @@
-// Server.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-#include "Server.h"
+#include "Server\Server.h"
 #include <Message.h>
 #include <iostream>
+#include <ws2tcpip.h>
 
 #define LISTEN_PORT 42000
 
@@ -179,14 +178,14 @@ int Server::Run()
 
 					int index = 0;
 
-					for (auto& client : myConnectedClients)
+					for (auto& conClient : myConnectedClients)
 					{
-						if (client.second.myServerID == clientID) continue;
+						if (conClient.second.myServerID == clientID) continue;
 
-						memcpy(&connectionMessage.clients[index], &client.second.myServerID, sizeof(int));
+						memcpy(&connectionMessage.clients[index], &conClient.second.myServerID, sizeof(int));
 						index += sizeof(int);
 
-						char* username = (char*)client.second.name.c_str();
+						char* username = (char*)conClient.second.name.c_str();
 						memcpy(&connectionMessage.clients[index], username, USERNAME_MAX_LENGTH);
 						index += USERNAME_MAX_LENGTH;
 					}
@@ -281,36 +280,36 @@ int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessag
 
 	return 0;
 }
-
-void Server::DEBUGMessageValidator(const char*& aMessage, const int aSize)
-{
-	TNP::Message* message = (TNP::Message*)aMessage;
-
-	switch (message->type)
-	{
-	case TNP::MessageType::serverClientDisconnected:
-	{
-		TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)&message;
-		break;
-	}
-	case TNP::MessageType::serverClientJoined:
-	{
-		TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)&message;
-
-		break;
-	}
-	case TNP::MessageType::serverClientMessage:
-	{
-		TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)&message;
-
-		std::string copyMSG = msg->message;
-
-		break;
-	}
-	default:
-		break;
-	}
-}
+//
+//void Server::DEBUGMessageValidator(const char*& aMessage, const int /*aSize*/)
+//{
+//	TNP::Message* message = (TNP::Message*)aMessage;
+//
+//	switch (message->type)
+//	{
+//	case TNP::MessageType::serverClientDisconnected:
+//	{
+//		TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)&message;
+//		break;
+//	}
+//	case TNP::MessageType::serverClientJoined:
+//	{
+//		TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)&message;
+//
+//		break;
+//	}
+//	case TNP::MessageType::serverClientMessage:
+//	{
+//		TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)&message;
+//
+//		std::string copyMSG = msg->message;
+//
+//		break;
+//	}
+//	default:
+//		break;
+//	}
+//}
 
 int Server::Shutdown()
 {
@@ -326,7 +325,7 @@ TNP::MessageType Server::DetermineMessageType()
 }
 
 
-void Server::HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort)
+void Server::HandleClientDisconnect(TNP::ClientDisconnect& /*aMessage*/, const int aClientPort)
 {
 	ClientData client = myConnectedClients.at(myPortToID[aClientPort]);
 

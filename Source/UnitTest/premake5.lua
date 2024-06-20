@@ -7,9 +7,9 @@ project "TNP - UnitTest"
 	kind "SharedLib"
 
 	files {
-		dirs.shared.."**.h",
-		dirs.shared.."**.cpp",
-		dirs.shared.."**.hpp",
+		dirs.unitTest.."**.h",
+		dirs.unitTest.."**.cpp",
+		dirs.unitTest.."**.hpp",
 	}
 
 	includedirs { 

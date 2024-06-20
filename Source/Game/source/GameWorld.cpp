@@ -26,8 +26,9 @@ void GameWorld::Init()
 
 	Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
 	myPlayer = new Player();
-	myPlayer->Init(startPosition);
-	myController = new PlayerController(myPlayer,0);
+	myPlayer->Init(startPosition, 0);
+	myPlayer->SetUsername("OlleAssLicker");
+	myController = new PlayerController(myPlayer, 0);
 
 
 }
@@ -53,5 +54,12 @@ void GameWorld::Render()
 	{
 		myPlayer->Render(spriteDrawer);
 	}
-	//Tga::SpriteSharedData;
+
+	if (!_RENDERDEBUG)
+		return;
+
+	Tga::DebugDrawer& debugDrawer(engine.GetDebugDrawer());
+	{
+		myPlayer->DebugRender(debugDrawer);
+	}
 }

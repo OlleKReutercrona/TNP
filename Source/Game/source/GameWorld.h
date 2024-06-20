@@ -3,6 +3,9 @@
 class PlayerController;
 class Player;
 
+
+#define _RENDERDEBUG 0
+
 class GameWorld
 {
 public:

@@ -2,7 +2,7 @@ include "../../Premake/extensions.lua"
 
 workspace "TNP"
 	location "../../"
-	startproject "TNP"
+	startproject "TNP - Client"
 	architecture "x64"
 
 	configurations {
@@ -23,7 +23,7 @@ include "../../Premake/common.lua"
 	
 
 -------------------------------------------------------------
-project "TNP"
+project "TNP - Client"
 	location (dirs.projectfiles)
 	dependson { "External", "Engine" }
 		

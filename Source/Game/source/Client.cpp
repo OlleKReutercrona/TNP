@@ -193,6 +193,29 @@ int Client::Run()
     return C_QUIT;
 }
 
+int Client::RecieveMessageFromServer()
+{
+    ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
+    int addrServerSize = sizeof(myServerAddress);
+    const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&myServerAddress, &addrServerSize);
+
+    if (recv_len == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+    {
+        std::cout << "Failed receiving data from udpSocket." << std::endl;
+        std::cout << "Error: " << WSAGetLastError() << std::endl;
+    }
+
+    if (recv_len > 0)
+    {
+        if (C_FAIL(HandleRecievedMessage()))
+        {
+            std::cout << "Fail logged." << std::endl;
+        }
+        return C_SUCCESS;
+    }
+    return C_QUIT;
+}
+
 int Client::Shutdown()
 {
     closesocket(myUDPSocket);

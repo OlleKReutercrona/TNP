@@ -39,6 +39,8 @@ public:
 	int StartInputThread();
 	int Run();
 
+	int RecieveMessageFromServer();
+
 	void AssignPlayer(Player& aPlayer);
 
 	int Shutdown();

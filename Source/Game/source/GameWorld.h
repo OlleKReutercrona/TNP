@@ -6,6 +6,11 @@ class Player;
 
 #define _RENDERDEBUG 0
 
+
+struct MessageThreadData
+{
+};
+
 class GameWorld
 {
 public:
@@ -15,12 +20,22 @@ public:
 	void Init();
 	void Update(float aTimeDelta); 
 	void Render();
+
+	void StartRecieveMessageThread();
+
 private:
+	
+
 
 	Player* myPlayer;
 	PlayerController* myController;
 	Client myClient;
 
+	MessageThreadData myMessageThreadData;
 
 	std::unordered_map<int, Player*> myOtherClients;
+	std::thread myRecieveMessageThread;
+
+	bool isRunning = true;
+
 };

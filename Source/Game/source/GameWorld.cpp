@@ -12,12 +12,16 @@
 #include "PlayerController.h"
 
 GameWorld::GameWorld()
-{}
+{
+}
 
-GameWorld::~GameWorld() 
-{}
+GameWorld::~GameWorld()
+{
+	isRunning = false;
+	myRecieveMessageThread.join();
+}
 
-void GameWorld::Init()  
+void GameWorld::Init()
 {
 	auto& engine = *Tga::Engine::GetInstance();
 
@@ -25,7 +29,19 @@ void GameWorld::Init()
 	myClient.Start();
 
 
+	//Message Recieve Thread
+
+
+
+	StartRecieveMessageThread();
+
 	Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
+
+
+
+
+
+	// Connect to Server
 	myPlayer = new Player();
 	myPlayer->Init(startPosition, false);
 	myClient.AssignPlayer(*myPlayer);
@@ -65,7 +81,7 @@ void GameWorld::Update(float aTimeDelta)
 
 void GameWorld::Render()
 {
-	auto &engine = *Tga::Engine::GetInstance();
+	auto& engine = *Tga::Engine::GetInstance();
 	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	// Game update
 	{
@@ -79,4 +95,24 @@ void GameWorld::Render()
 	{
 		myPlayer->DebugRender(debugDrawer);
 	}
+}
+
+void GameWorld::StartRecieveMessageThread()
+{
+	myRecieveMessageThread = std::thread([&]
+		{
+			// very basic async input setup... we read input on a different thread
+			while (isRunning)
+			{
+				if (!myClient.GetHasJoined())
+					continue;
+				
+				// Does buffer have data?
+				//Yes?
+					//Recieve Message
+				//No?
+					//continue;
+			}
+			std::cout << "Recieve Message Thread Done!" << std::endl;
+		});
 }

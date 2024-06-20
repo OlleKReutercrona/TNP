@@ -19,7 +19,7 @@ struct InputMapper
 class PlayerController 
 {
 public:
-	PlayerController(Player* aPlayer, bool aIsPlayer1);
+	PlayerController(Player* aPlayer);
 	~PlayerController();
 
 

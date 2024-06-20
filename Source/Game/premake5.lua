@@ -38,7 +38,12 @@ project "TNP - Client"
 
 	links {"External", "Engine", "ws2_32" }
 
-	includedirs { dirs.external, dirs.engine, dirs.shared, dirs.network }
+	includedirs { 
+		dirs.external, 
+		dirs.engine,
+		dirs.shared.. "/Source",
+		dirs.network 
+	}
 
 	files {
 		"source/**.h",

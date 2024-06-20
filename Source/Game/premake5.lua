@@ -18,9 +18,7 @@ include "../../Premake/common.lua"
 	include (dirs.external)
 	include (dirs.engine)
 	include (dirs.shared)
-	printf("Including UnitTest")
 	include (dirs.unitTest)
-	printf("Done Including UnitTest")
 	
 	
 
@@ -38,9 +36,9 @@ project "TNP"
 	targetname("%{prj.name}_%{cfg.buildcfg}")
 	objdir ("%{dirs.temp}/%{prj.name}/%{cfg.buildcfg}")
 
-	links {"External", "Engine"}
+	links {"External", "Engine", "ws2_32" }
 
-	includedirs { dirs.external, dirs.engine, dirs.shared }
+	includedirs { dirs.external, dirs.engine, dirs.shared, dirs.network }
 
 	files {
 		"source/**.h",

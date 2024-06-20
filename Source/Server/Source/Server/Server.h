@@ -4,9 +4,8 @@
 #include <string>
 #include <future>
 
-#include "WinSock2.h"
-#include "WS2tcpip.h"
-#include "../Shared/Source/Network-Shared.h"
+#include <WinSock2.h>
+#include "Network-Shared.h"
 
 struct ClientData
 {
@@ -61,7 +60,6 @@ private:
 	int SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip = -1);
 	int SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID);
 
-	void DEBUGMessageValidator(const char*& aMessage, const int aSize);
 
 	// Data members
 	std::map<int, int> myPortToID;

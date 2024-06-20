@@ -26,7 +26,6 @@ void GameWorld::Update(float /*aTimeDelta*/)
 	// Recieve message from server
 	// handle
 
-
 	// Input 
 	// Sends messages to server for verification
 

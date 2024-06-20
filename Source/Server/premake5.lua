@@ -17,9 +17,17 @@ project "TNP - Server"
 		dirs.server.."**.hpp",
 	}
 
-	includedirs { dirs.external,  dirs.engine, dirs.server }
+	includedirs { 
+		dirs.external,  
+		dirs.engine, 
+		dirs.server .. "/Source", 
+		dirs.game.. "/Source",
+		dirs.shared.. "/Source", 
+	}
 
-	libdirs { dirs.lib, dirs.dependencies }
+	links {"ws2_32"}
+
+	libdirs { dirs.lib, dirs.dependencies, dirs.share }
 
 	filter "configurations:Debug"
 		defines {"_DEBUG"}

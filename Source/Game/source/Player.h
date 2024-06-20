@@ -7,6 +7,14 @@
 #include "PlayerController.h"
 
 
+enum class ePlayerCommands
+{
+	Move,
+	Interact,
+	SetColor
+};
+
+
 struct UsernameData
 {
 	std::string username;
@@ -16,8 +24,11 @@ struct UsernameData
 
 struct SpriteData 
 {
-	Tga::SpriteSharedData sharedData;
-	Tga::Sprite2DInstanceData instanceData;
+	Tga::SpriteSharedData sharedDataHat;
+	Tga::Sprite2DInstanceData instanceDataHat;
+
+	Tga::SpriteSharedData sharedDataBody;
+	Tga::Sprite2DInstanceData instanceDataBody;
 };
 
 class Player 
@@ -34,10 +45,23 @@ public:
 	void DebugRender(Tga::DebugDrawer& aDebugDrawer);
 
 
+
+	void ExecuteCommand(ePlayerCommands aCommand);
+
+
+
+
+
+	const bool& GetIsPlayerOne()
+	{
+		return myIsPlayerOne;
+	}
+
 private:
 	Tga::Vector2f myPosition;	
 	SpriteData mySpriteData;
 	UsernameData myUsernameData;
 	float myMovementSpeed;
 	bool myIsPlayerOne;
+
 };

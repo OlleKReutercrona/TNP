@@ -1,8 +1,8 @@
 #pragma once
+#include "Client.h"
 
 class PlayerController;
 class Player;
-
 
 #define _RENDERDEBUG 0
 
@@ -19,5 +19,8 @@ private:
 
 	Player* myPlayer;
 	PlayerController* myController;
+	Client myClient;
 
+
+	std::unordered_map<int, Player*> myOtherClients;
 };

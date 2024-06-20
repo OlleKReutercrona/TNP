@@ -5,10 +5,10 @@
 
 
 
-PlayerController::PlayerController(Player* aPlayer, bool aIsPlayer1)
+PlayerController::PlayerController(Player* aPlayer)
 {
 	myPlayer = aPlayer;
-	if (aIsPlayer1)
+	if (myPlayer->GetIsPlayerOne())
 	{
 		myInputMapper.up = 0x57;
 		myInputMapper.down = 0x53;

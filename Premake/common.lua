@@ -15,6 +15,7 @@ dirs["game"]			= os.realpath(dirs.root .. "Source/Game/")
 dirs["engine"]			= os.realpath(dirs.root .. "Source/Engine")
 dirs["server"]			= os.realpath(dirs.root .. "Source/Server/")
 dirs["shared"]			= os.realpath(dirs.root .. "Source/Shared/")
+dirs["unitTest"]		= os.realpath(dirs.root .. "Source/UnitTest/")
 dirs["settings"]		= os.realpath(dirs.root .. "Bin/settings/")
 dirs["engine_assets"] 	= os.realpath(dirs.root .. "EngineAssets/")
 

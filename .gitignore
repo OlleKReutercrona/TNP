@@ -37,3 +37,7 @@ Local/*
 Bin/settings/Game.json
 vs/*
 /.vs
+/Temp
+/Lib
+/Bin
+/Bin

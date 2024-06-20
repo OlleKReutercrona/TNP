@@ -18,6 +18,9 @@ include "../../Premake/common.lua"
 	include (dirs.external)
 	include (dirs.engine)
 	include (dirs.shared)
+	printf("Including UnitTest")
+	include (dirs.unitTest)
+	printf("Done Including UnitTest")
 	
 	
 

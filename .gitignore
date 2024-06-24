@@ -39,3 +39,5 @@ vs/*
 /Temp
 /Lib
 /Bin
+*.cso
+*.pdb

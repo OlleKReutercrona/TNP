@@ -7,6 +7,7 @@
 
 #include <WinSock2.h>
 #include "Network-Shared.h"
+#include "Message.h"
 
 struct ClientData
 {
@@ -58,7 +59,7 @@ public:
 private:
 	void ProcessMessage(char* aMessage, sockaddr_in& someInformation);
 
-	TNP::MessageType DetermineMessageType();
+	TNP::MessageType DetermineMessageType(const char* aMessage);
 
 	void HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort);
 

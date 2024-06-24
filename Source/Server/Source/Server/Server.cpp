@@ -151,7 +151,7 @@ void Server::ProcessMessage(char* aMessage, sockaddr_in& someInformation)
 	inet_ntop(AF_INET, &someInformation.sin_addr, &clientAddress[0], 16);
 	const int clientPort = ntohs(someInformation.sin_port);
 
-	TNP::MessageType type = DetermineMessageType();
+	TNP::MessageType type = DetermineMessageType(aMessage);
 
 	switch (type)
 	{
@@ -332,10 +332,10 @@ int Server::Shutdown()
 
 
 
-//TNP::MessageType Server::DetermineMessageType()
-//{
-//	return *(TNP::MessageType*)&mySocketBuffer[0];
-//}
+TNP::MessageType Server::DetermineMessageType(const char* aMessage)
+{
+	return *(TNP::MessageType*)&aMessage[0];
+}
 
 
 void Server::HandleClientDisconnect(TNP::ClientDisconnect& /*aMessage*/, const int aClientPort)

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "tge/math/Vector.h"
 #include "Network-Shared.h"
 
 namespace TNP

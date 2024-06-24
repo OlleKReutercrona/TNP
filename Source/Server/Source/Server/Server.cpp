@@ -142,7 +142,7 @@ int Server::Run()
 	return SERVER_QUIT;
 }
 
-void Server::ProcessMessage(char* aMessage, sockaddr_in& someInformation)
+void Server::ProcessMessage(const char aMessage[NETMESSAGE_SIZE], sockaddr_in& someInformation)
 {
 	// Extract the address information from the incoming data.
 			// 16 bytes is enough for an IPv4 address.
@@ -275,6 +275,8 @@ void Server::ProcessMessage(char* aMessage, sockaddr_in& someInformation)
 
 		break;
 	}
+	default:
+		std::cout << "Failed to determine message type \n";
 	}
 }
 
@@ -332,7 +334,7 @@ int Server::Shutdown()
 
 
 
-TNP::MessageType Server::DetermineMessageType(const char* aMessage)
+TNP::MessageType Server::DetermineMessageType(const char aMessage[NETMESSAGE_SIZE])
 {
 	return *(TNP::MessageType*)&aMessage[0];
 }

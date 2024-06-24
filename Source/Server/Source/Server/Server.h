@@ -57,9 +57,9 @@ public:
 	int Shutdown();
 
 private:
-	void ProcessMessage(char* aMessage, sockaddr_in& someInformation);
+	void ProcessMessage(const char aMessage[NETMESSAGE_SIZE], sockaddr_in& someInformation);
 
-	TNP::MessageType DetermineMessageType(const char* aMessage);
+	TNP::MessageType DetermineMessageType(const char aMessage[NETMESSAGE_SIZE]);
 
 	void HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort);
 

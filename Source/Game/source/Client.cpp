@@ -85,6 +85,7 @@ int Client::Connect()
         if (messageStr.size() <= USERNAME_MAX_LENGTH)
         {
             TNP::ClientJoin message;
+            //message.username = { 0 };
 
             strcpy_s(message.username, USERNAME_MAX_LENGTH, messageStr.c_str());
 

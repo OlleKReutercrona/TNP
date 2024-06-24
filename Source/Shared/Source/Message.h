@@ -41,8 +41,6 @@ namespace TNP
 	public:
 		const MessageType type;
 		const unsigned int messageID = 0;
-
-		virtual void Deserialize(const char* aRawMessage) = 0;
 	};
 
 
@@ -50,7 +48,7 @@ namespace TNP
 	{
 		ClientJoin() : Message(MessageType::clientJoin) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ClientJoin* msg = (TNP::ClientJoin*)(aRawMessage);
 
@@ -64,7 +62,7 @@ namespace TNP
 	{
 		ClientDisconnect() : Message(MessageType::clientDisconnect) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ClientDisconnect* msg = (TNP::ClientDisconnect*)(aRawMessage);
 
@@ -76,7 +74,7 @@ namespace TNP
 	{
 		ClientMessage() : Message(MessageType::clientMessage) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ClientMessage* msg = (TNP::ClientMessage*)(aRawMessage);
 
@@ -90,7 +88,7 @@ namespace TNP
 	{
 		ClientMovedMessage() : Message(MessageType::clientSendPosition) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
 
@@ -104,7 +102,7 @@ namespace TNP
 	{
 		ServerConnectedClientData() : Message(MessageType::serverConnectedClientData) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ServerConnectedClientData* msg = (TNP::ServerConnectedClientData*)(aRawMessage);
 
@@ -127,7 +125,7 @@ namespace TNP
 	{
 		ServerClientJoined() : Message(MessageType::serverClientJoined) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)(aRawMessage);
 
@@ -142,7 +140,7 @@ namespace TNP
 	{
 		ServerClientDisconnected() : Message(MessageType::serverClientDisconnected) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)(aRawMessage);
 
@@ -156,7 +154,7 @@ namespace TNP
 	{
 		ServerClientMessage() : Message(MessageType::serverClientMessage) {}
 
-		void Deserialize(const char* aRawMessage) override
+		void Deserialize(const char* aRawMessage) 
 		{
 			TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)(aRawMessage);
 

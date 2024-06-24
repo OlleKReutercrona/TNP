@@ -18,6 +18,10 @@ GameWorld::GameWorld()
 GameWorld::~GameWorld()
 {
 	isRunning = false;
+	if (C_FAIL(myClient.Shutdown()))
+	{
+		std::cout << "SHUTDOWN FAILED" << std::endl;
+	}
 	myRecieveMessageThread.join();
 }
 
@@ -26,24 +30,37 @@ void GameWorld::Init()
 	auto& engine = *Tga::Engine::GetInstance();
 
 	Tga::Vector2ui resUI = engine.GetRenderSize();
-	myClient.Start();
+	
+	
+	if (C_FAIL(myClient.Start()))
+	{
+		std::cout << "START FAILED" << std::endl;
+	}
 
 
 	//Message Recieve Thread
 
 
 
-	StartRecieveMessageThread();
+	//StartRecieveMessageThread();
 
+	if (C_FAIL(myClient.Connect()))
+	{
+		std::cout << "CONNECT FAILED" << std::endl;
+	}
 	Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
 
 
 
 
 
+	if (C_FAIL(myClient.Run()))
+	{
+		std::cout << "START FAILED" << std::endl;
+	}
 	// Connect to Server
 	myPlayer = new Player();
-	myPlayer->Init(startPosition, false);
+	myPlayer->Init(startPosition, true);
 	myClient.AssignPlayer(*myPlayer);
 	myController = new PlayerController(myPlayer);
 
@@ -65,9 +82,8 @@ void GameWorld::Update(float aTimeDelta)
 
 
 	// SKICKA MEDDELANDEN
-
-
 	myController->Update(aTimeDelta);
+	
 
 
 

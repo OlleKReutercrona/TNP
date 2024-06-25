@@ -27,6 +27,21 @@ namespace TNP
 	struct Message;
 }
 
+// This is jank and should maybe be taken care of by server but probably not
+struct MessageCounter
+{
+	MessageCounter() : myMessages((int)TNP::MessageType::count) {}
+
+	int operator()(const int anID) 
+	{
+		assert(anID >= 0 && anID < myMessages.size() && "Index out of range");
+
+		return myMessages[anID];
+	}
+
+	std::vector<int> myMessages;
+};
+
 class Client
 {
 public:
@@ -45,8 +60,10 @@ public:
 
 	int Shutdown();
 
+	int SendPositionMessage();
 
-	const bool& GetHasJoined()
+
+	const inline bool GetHasJoined()
 	{
 		return hasJoined;
 	}
@@ -55,6 +72,8 @@ private:
 	int SendClientMessage(const TNP::Message& aMSG, const int aSize);
 
 	int HandleRecievedMessage();
+
+	Player* myPlayer;
 
 	std::string myClientName = "xXx_DragonSlayer_xXx";
 
@@ -66,7 +85,7 @@ private:
 	SOCKET myUDPSocket;
 	WSADATA myWinSockData;
 
-	Player* myPlayer;
+	MessageCounter myMessageCounter;
 
 	sockaddr_in myServerAddress;
 	char mySocketBuffer[NETMESSAGE_SIZE];

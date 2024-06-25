@@ -50,7 +50,8 @@ public:
 
 
 
-
+	const inline int GetPID() { return myServerPID; }
+	const inline Tga::Vector2f& GetPosition() { return myPosition; }
 
 	const bool& GetIsPlayerOne()
 	{
@@ -62,6 +63,7 @@ private:
 	SpriteData mySpriteData;
 	UsernameData myUsernameData;
 	float myMovementSpeed;
+	int myServerPID = -1;
 	bool myIsPlayerOne;
 
 };

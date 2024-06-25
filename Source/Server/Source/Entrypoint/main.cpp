@@ -33,8 +33,8 @@ int main()
 	//}
 
 	Server server;
-	int ID = server.CreateID(0);
-	std::cout << ID << "\n";
+	//int ID = server.CreateID(0);
+	//std::cout << ID << "\n";
 
 	if (S_FAIL(server.Start()))
 	{

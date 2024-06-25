@@ -1,5 +1,5 @@
 // Client.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#include "stdafx.h"
 #include "Client.h"
 #include <iostream>
 #include "Message.h"
@@ -96,6 +96,13 @@ int Client::Connect()
                 return C_CONNECTION_FAILED;
             }
 
+
+            /* 
+                To do in future here.
+                The message will send even if the server is not responding leaving the client to think that it is connected.
+                We should wait until server has sent an ACK message before we try to send other messages to the server.
+                - Olle
+            */
             hasConnected = true;
             system("cls");
             std::cout << "Connected to server!" << std::endl;
@@ -229,6 +236,17 @@ int Client::Shutdown()
     return C_QUIT;
 }
 
+int Client::SendPositionMessage()
+{
+    TNP::ClientMovedMessage message;
+
+    message.playerID = myPlayer->GetPID();
+    message.position = myPlayer->GetPosition();
+    message.messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
+
+    return SendClientMessage(message, sizeof(message));
+}
+
 int Client::SendClientMessage(const TNP::Message& aMSG, const int aSize)
 {
     // Unsure whether sending a reference to TNP::Message here leaves out other derived data and only send the message type...
@@ -317,6 +335,17 @@ int Client::HandleRecievedMessage()
             std::cout << name << std::endl;
 
         }
+
+        break;
+    }
+    case TNP::MessageType::updateClients:
+    {
+        TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
+
+        // This needs to sync with all other clients so client should probably not recieve messages
+        // Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
+        // them out to the correct reciever -- Olle
+
 
         break;
     }

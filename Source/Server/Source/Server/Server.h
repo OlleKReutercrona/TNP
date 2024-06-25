@@ -57,9 +57,9 @@ public:
 	int Shutdown();
 
 private:
-	void ProcessMessage(const char aMessage[NETMESSAGE_SIZE], sockaddr_in& someInformation);
+	void ProcessMessage(const char* aMessage, sockaddr_in& someInformation);
 
-	TNP::MessageType DetermineMessageType(const char aMessage[NETMESSAGE_SIZE]);
+	TNP::MessageType DetermineMessageType(const char* aMessage);
 
 	void HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort);
 
@@ -67,7 +67,7 @@ private:
 
 	int SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip = -1);
 	int SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID);
-
+	void SyncClients();
 
 	// Data members
 	std::map<int, int> myPortToID = {};

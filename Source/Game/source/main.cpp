@@ -65,20 +65,14 @@ void Go()
 
 		Tga::Engine& engine = *Tga::Engine::GetInstance();
 
-		constexpr int tickRate = 64;
-		constexpr float tickTimeStep = 1.0f / (float)tickRate;
 
-		float timeSinceLastTick = 0.0f;
+
 
 		while (engine.BeginFrame())
 		{
-			timeSinceLastTick += engine.GetDeltaTime();
 
 			gameWorld.Update(engine.GetDeltaTime());
-			if (timeSinceLastTick >= tickTimeStep)
-			{
-				timeSinceLastTick = 0.0f;
-			}
+
 
 			gameWorld.Render();
 

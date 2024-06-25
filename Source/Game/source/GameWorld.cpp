@@ -54,10 +54,10 @@ void GameWorld::Init()
 
 
 
-	if (C_FAIL(myClient.Run()))
-	{
-		std::cout << "START FAILED" << std::endl;
-	}
+	//if (C_FAIL(myClient.Run()))
+	//{
+	//	std::cout << "START FAILED" << std::endl;
+	//}
 	// Connect to Server
 	myPlayer = new Player();
 	myPlayer->Init(startPosition, true);
@@ -117,12 +117,41 @@ void GameWorld::StartRecieveMessageThread()
 {
 	myRecieveMessageThread = std::thread([&]
 		{
+			constexpr int tickRate = 64;
+			constexpr float tickTimeStep = 1.0f / (float)tickRate;
+
+			float timeSinceLastTick = 0.0f;
+
 			// very basic async input setup... we read input on a different thread
 			while (isRunning)
 			{
+
+				// cant check deltatime here since this while loop often time will be faster than the Engine
+				// Therefor we need to check our own time in this loop
+				// Todo -> check our own time.
+				timeSinceLastTick += Tga::Engine::GetInstance()->GetDeltaTime();
+
 				if (!myClient.GetHasJoined())
 					continue;
-				
+			
+				// Return if 
+				if (timeSinceLastTick < tickTimeStep) { continue; }
+
+				timeSinceLastTick = 0.0f;
+	
+				// Handle messages to send
+				{
+					// Send Client position
+					myClient.SendPositionMessage();
+				}
+
+
+				// Handle recieved messages
+				{
+
+				}
+
+
 				// Does buffer have data?
 				//Yes?
 					//Recieve Message

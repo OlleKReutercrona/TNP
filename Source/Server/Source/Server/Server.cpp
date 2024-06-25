@@ -3,6 +3,7 @@
 #include <Message.h>
 #include <iostream>
 #include <ws2tcpip.h>
+#include <tge/Timer.h>
 
 #define LISTEN_PORT 42000
 
@@ -120,8 +121,18 @@ int Server::Run()
 	static int clientAddrSize = sizeof(clientAddressInformation);
 	char mySocketBuffer[NETMESSAGE_SIZE];
 
+	Timer timer;
+
+	constexpr int tickRate = 64;
+	constexpr float tickTimeStep = 1.0f / (float)tickRate;
+
+	float timeSinceLastTick = 0.0f;
+
 	while (isRunning)
 	{
+		timer.Update();
+
+
 		// Clear the buffer.
 		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
 
@@ -137,12 +148,25 @@ int Server::Run()
 		{
 			ProcessMessage(mySocketBuffer, clientAddressInformation);
 		}
+
+		timeSinceLastTick += timer.GetDeltaTime();
+
+		if (timeSinceLastTick < tickTimeStep) { continue; }
+
+		timeSinceLastTick = 0.0f;
+
+		// Send messages
+		{
+			// Sync all clients
+			SyncClients();
+		}
+
 	}
 
 	return SERVER_QUIT;
 }
 
-void Server::ProcessMessage(const char aMessage[NETMESSAGE_SIZE], sockaddr_in& someInformation)
+void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 {
 	// Extract the address information from the incoming data.
 			// 16 bytes is enough for an IPv4 address.
@@ -324,6 +348,26 @@ int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessag
 	return 0;
 }
 
+void Server::SyncClients()
+{
+	// See if any clients moved since last check
+
+	TNP::UpdateClientsMessage message;
+
+	// temp send all clients positions
+	for (auto& [playerID, client] : myConnectedClients)
+	{
+		auto& data = message.myData.emplace_back();
+
+		data.playerID = client.myServerID;
+		data.position = client.position;
+	}
+
+	message.numberOfClients = myConnectedClients.size();
+
+	SendMessageToAllClients(message, sizeof(message));
+}
+
 int Server::Shutdown()
 {
 	myInputThread.join();
@@ -334,7 +378,7 @@ int Server::Shutdown()
 
 
 
-TNP::MessageType Server::DetermineMessageType(const char aMessage[NETMESSAGE_SIZE])
+TNP::MessageType Server::DetermineMessageType(const char* aMessage)
 {
 	return *(TNP::MessageType*)&aMessage[0];
 }

@@ -117,14 +117,14 @@ namespace TNP
 			memcpy(this, msg, sizeof(UpdateClientsMessage));
 		}
 
-		struct ClientData
+		struct UpdateClientData
 		{
 			int playerID = -1;
 			Tga::Vector2f position = {-99999};
 		};
 
 		int numberOfClients = -1;
-		std::vector<ClientData> myData{};
+		std::vector<UpdateClientData> myData{};
 	};
 
 

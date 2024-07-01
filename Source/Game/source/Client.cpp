@@ -342,10 +342,7 @@ int Client::HandleRecievedMessage()
     {
         TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
         msg;
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
         // This needs to sync with all other clients so client should probably not recieve messages
         // Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
         // them out to the correct reciever -- Olle

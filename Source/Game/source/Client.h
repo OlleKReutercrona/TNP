@@ -1,4 +1,6 @@
 #pragma once
+#pragma message ("In Client")
+
 #include <thread>
 
 #include "WinSock2.h"

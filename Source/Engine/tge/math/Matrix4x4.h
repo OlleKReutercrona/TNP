@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include "Vector.h"
 #include "Quaternion.h"
+#pragma message( "MATRIX 4x4 SUCKS " __FILE__)
 
 #pragma warning(disable : 6385) // Buffer underrun warning.
 #pragma warning(disable : 26495) // Uninitialized warning.
@@ -1019,7 +1020,7 @@ namespace Tga
 			_mm_mul_ps(VecSwizzle(vec1, 1, 0, 3, 2), VecSwizzle(vec2, 2, 1, 2, 1)));
 	}
 
-	inline Matrix4x4<float> Matrix4x4<float>::InverseFloat(const Matrix4x4<float>& aMatrixToInverse)
+	__forceinline Matrix4x4<float> Matrix4x4<float>::InverseFloat(const Matrix4x4<float>& aMatrixToInverse)
 	{
 		// use block matrix method
 		// A is a matrix, then i(A) or iA means inverse of A, A# (or A_ in code) means adjugate of A, |A| (or detA in code) is determinant, tr(A) is trace
@@ -1085,7 +1086,7 @@ namespace Tga
 		return r;
 	}
 
-	inline Matrix4x4<float> Matrix4x4<float>::InverseFastFloat(const Matrix4x4<float>& aMatrixToInverse)
+	__forceinline Matrix4x4<float> Matrix4x4<float>::InverseFastFloat(const Matrix4x4<float>& aMatrixToInverse)
 	{
 		Matrix4x4<float> m;
 

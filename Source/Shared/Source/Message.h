@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <string>
 #include "tge/math/Vector.h"
 #include "Network-Shared.h"
@@ -128,7 +129,7 @@ namespace TNP
 		};
 
 		int numberOfClients = -1;
-		std::vector<UpdateClientData> myData{};
+		std::vector<UpdateClientData> myData = {};
 	};
 
 

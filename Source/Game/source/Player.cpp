@@ -1,9 +1,9 @@
+#include "Player.h"
 #include <tge/engine.h>
 #include <tge/graphics/GraphicsEngine.h>
 #include <tge/drawers/SpriteDrawer.h>
 #include <tge/texture/TextureManager.h>
 
-#include "Player.h"
 Player::Player()
 {
 	myIsPlayerOne = true;

@@ -307,7 +307,7 @@ eNetworkCodes TNP::MessageHandler::ParseMessage()
 		// Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
 		// them out to the correct reciever -- Olle
 
-		for (unsigned int i = 0; i < msg->numberOfClients; i++)
+		for (unsigned int i = 0; i < (unsigned int)msg->numberOfClients; i++)
 		{
 			ClientUpdatePackage package;
 			package.position = msg->myData[i].position;

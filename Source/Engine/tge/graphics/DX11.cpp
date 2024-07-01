@@ -62,7 +62,7 @@ IDXGIAdapter* FindBestAdapter()
 	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(result))
 	{
-		return false;
+		return nullptr;
 	}
 	// Use the factory to create an adapter for the primary graphics interface (video card).
 	IDXGIAdapter* usingAdapter = nullptr;

@@ -46,7 +46,7 @@ namespace Tga
 		/**
 		 * Instructs the animation to play.
 		 */
-		void AnimationPlayer::Play()
+		void Play()
 		{
 			myState = AnimationState::Playing;
 		}
@@ -54,7 +54,7 @@ namespace Tga
 		/**
 		 * Pauses the animation at the current frame.
 		 */
-		void AnimationPlayer::Pause()
+		void Pause()
 		{
 			myState = AnimationState::Paused;
 		}
@@ -62,31 +62,31 @@ namespace Tga
 		/**
 		 * Stops and rewinds the current animation to the beginning.
 		 */
-		void AnimationPlayer::Stop()
+		void Stop()
 		{
 			myState = AnimationState::Stopped;
 			myTime = 0;
 		}
 
 		bool GetIsLooping() const { return myIsLooping; }
-		void AnimationPlayer::SetIsLooping(bool shouldLoop) { myIsLooping = shouldLoop; }
+		void SetIsLooping(bool shouldLoop) { myIsLooping = shouldLoop; }
 
 		bool GetIsInterpolating() const { return myIsInterpolating; }
-		void AnimationPlayer::SetIsInterpolating(bool shouldInterpolate) { myIsInterpolating = shouldInterpolate; }
+		void SetIsInterpolating(bool shouldInterpolate) { myIsInterpolating = shouldInterpolate; }
 
 		float GetFramesPerSecond() const { return myFPS; }
-		void AnimationPlayer::SetFramesPerSecond(float someFPS)
+		void SetFramesPerSecond(float someFPS)
 		{
 			myFPS = someFPS;
 		}
 
 		float GetTime() const { return myTime; }
-		void AnimationPlayer::SetTime(float time)
+		void SetTime(float time)
 		{
 			myTime = time;
 		}
 
-		void AnimationPlayer::SetFrame(unsigned int frame)
+		void SetFrame(unsigned int frame)
 		{
 			myTime = frame / myFPS;
 		}
@@ -95,7 +95,7 @@ namespace Tga
 		std::shared_ptr<const Animation> GetAnimation() const { return myAnimation; }
 		AnimationState GetState() const { return myState; }
 		
-		unsigned int AnimationPlayer::GetFrame() { return static_cast<unsigned int>(myTime * myFPS); }
+		unsigned int GetFrame() { return static_cast<unsigned int>(myTime * myFPS); }
 
 		bool IsValid() const { return myModel ? true : false; }
 	};

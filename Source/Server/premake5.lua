@@ -3,7 +3,7 @@ include "../../Premake/common.lua"
 project "TNP - Server"
 	location(dirs.projectfiles)
 	language "C++"
-	cppdialect "C++17"
+	cppdialect "C++20"
 	kind "ConsoleApp"
 
 	debugdir(dirs.bin.."Server/")

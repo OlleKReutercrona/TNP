@@ -56,9 +56,9 @@ namespace TNP
 	{
 	public:
 
-		virtual void RecieveMessage(const TNP::ServerClientDisconnected& aMessage){ __noop; };
-		virtual void RecieveMessage(const TNP::ClientMovedMessage& aMessage){ __noop; };
-		virtual void ServerUpdate(const TNP::ClientUpdatePackage& aMessage){ __noop; };
+		virtual void RecieveMessage(const TNP::ServerClientDisconnected& /*aMessage*/){ __noop; };
+		virtual void RecieveMessage(const TNP::ClientMovedMessage& /*aMessage*/){ __noop; };
+		virtual void ServerUpdate(const TNP::ClientUpdatePackage& /*aMessage*/){ __noop; };
 		//virtual void RecieveMessage(const TNP::ServerClientDisconnected& aMessage){ __noop; };
 		virtual void Disconnect() = 0;
 

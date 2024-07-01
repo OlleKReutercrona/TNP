@@ -4,7 +4,7 @@ project "External"
 	location "%{wks.location}/Local/"
 		
 	language "C++"
-	cppdialect "C++17"
+	cppdialect "C++20"
 
 	targetdir ("../../Lib/")
 	targetname("%{prj.name}_%{cfg.buildcfg}")

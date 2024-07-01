@@ -4,6 +4,7 @@
 #include "WinSock2.h"
 #include "WS2tcpip.h"
 #include "Network-Shared.h"
+#include "Message.h"
 
 #include <unordered_map>
 #include <string>

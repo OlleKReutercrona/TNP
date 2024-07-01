@@ -12,7 +12,7 @@ enum class eNetworkCodes
 	quit
 };
 
-static char* EnumToString(const eNetworkCodes aCode)
+static const char* EnumToString(const eNetworkCodes aCode)
 {
 	switch (aCode)
 	{
@@ -21,9 +21,9 @@ static char* EnumToString(const eNetworkCodes aCode)
 	case eNetworkCodes::connectionFailed:
 		return "Connection Failed";	
 	case eNetworkCodes::success:
-			return "Success";	
+		return "Success";	
 	case eNetworkCodes::quit:
-				return "Quit";
+		return "Quit";
 	default:
 		break;
 	}

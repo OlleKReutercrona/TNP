@@ -12,7 +12,7 @@ enum class eNetworkCodes
 	quit
 };
 
-static const char* EnumToString(const eNetworkCodes aCode)
+static inline const char* EnumToString(const eNetworkCodes aCode)
 {
 	switch (aCode)
 	{

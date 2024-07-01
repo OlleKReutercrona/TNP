@@ -242,7 +242,7 @@ int Client::SendPositionMessage()
 
     message.playerID = myPlayer->GetPID();
     message.position = myPlayer->GetPosition();
-    message.messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
+    //message.messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
 
     return SendClientMessage(message, sizeof(message));
 }
@@ -342,6 +342,10 @@ int Client::HandleRecievedMessage()
     {
         TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
         msg;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         // This needs to sync with all other clients so client should probably not recieve messages
         // Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
         // them out to the correct reciever -- Olle

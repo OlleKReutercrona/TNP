@@ -106,6 +106,10 @@ namespace TNP
 		Tga::Vector2f position;
 	};
 
+
+	/*
+		Sent from Server to all clients to update the positions of the other connected clients
+	*/
 	struct UpdateClientsMessage : public Message
 	{
 		UpdateClientsMessage() : Message(MessageType::updateClients) {}

@@ -107,17 +107,23 @@ namespace TNP
 		eNetworkCodes QueueMessage(Package& aMessageToSend);
 
 		eNetworkCodes StartRecieveThread();
-		eNetworkCodes ParseMessage();
+		eNetworkCodes HandleRecievedMessage(const char* aMessage);
+		eNetworkCodes ParseMessage(const TNP::Message* aMessage);
 		eNetworkCodes SendMessages();
 #undef SendMessage
 		eNetworkCodes SendMessage(Package* aMessageToSend);
+
+		void UpdateClients();
 
 		// might be redundant
 		std::unordered_map<int, NetworkedClient*> myConnectedClients;
 
 
 		// Probably will require rework since we dont want to save all messages
-		std::unordered_map<int, std::vector<TNP::Message*>> myRecievedMessages;
+		//std::unordered_map<int, std::vector<TNP::Message*>> myRecievedMessages;
+
+		/* Messages are owned on the heap in this vector */
+		std::vector<TNP::Message*> myRecievedMessages;
 		std::vector<Package> myMessagesToSend = {};
 
 		// tickrate stuff
@@ -129,6 +135,7 @@ namespace TNP
 
 		// network properties
 		std::thread myRecieveThread;
+		std::thread mySendThread;
 		std::atomic<bool> isRunning = true;
 		std::atomic<bool> hasMessage = true;
 

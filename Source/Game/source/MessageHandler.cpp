@@ -135,7 +135,7 @@ void TNP::MessageHandler::Update()
 				break;
 			}
 
-			if (Failed(ParseMessage()))
+			if (Failed(HandleRecievedMessage(mySocketBuffer)))
 			{
 				std::cout << "Failed to parse message." << std::endl;
 			}
@@ -144,7 +144,7 @@ void TNP::MessageHandler::Update()
 
 
 
-
+	// Tick based client actions (sending & recieving)
 	{
 		myTimeSinceLastTick += myTimer.GetDeltaTime();
 
@@ -153,13 +153,14 @@ void TNP::MessageHandler::Update()
 		myTimeSinceLastTick = 0.0f;
 
 		// Send messages to clients
+		UpdateClients();
 
 
+		// Send messages to server
+		mySendThread = std::thread(&MessageHandler::SendMessages, this);
 
-		// Send messages
-		SendMessages();
 
-
+		mySendThread.join();
 	}
 }
 
@@ -167,7 +168,12 @@ eNetworkCodes TNP::MessageHandler::SendMessages()
 {
 	for (unsigned int i = 0; i < myMessagesToSend.size(); i++)
 	{
-		SendMessage(&myMessagesToSend[i]);
+		eNetworkCodes code = SendMessage(&myMessagesToSend[i]);
+
+		if (code == eNetworkCodes::failed)
+		{
+			// handle if message failed to send
+		}
 	}
 
 	myMessagesToSend.clear();
@@ -182,11 +188,28 @@ eNetworkCodes TNP::MessageHandler::SendMessage(Package* aMessageToSend)
 
 	if (sendto(myUDPSocket, msg, aMessageToSend->size, 0, reinterpret_cast<sockaddr*>(&myServerAddress), sizeof(myServerAddress)) == SOCKET_ERROR)
 	{
+		delete aMessageToSend->message;
+		aMessageToSend->message = nullptr;
+
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
 		return eNetworkCodes::failed;
 	}
 
+	delete aMessageToSend->message;
+	aMessageToSend->message = nullptr;
+
 	return eNetworkCodes::success;
+}
+
+void TNP::MessageHandler::UpdateClients()
+{
+	for (unsigned int i = 0; i < myRecievedMessages.size(); i++)
+	{
+		ParseMessage(myRecievedMessages[i]);
+		delete myRecievedMessages[i];
+	}
+
+	myRecievedMessages.clear();
 }
 
 eNetworkCodes TNP::MessageHandler::QueueMessage(Package& aMessageToSend)
@@ -212,9 +235,79 @@ eNetworkCodes TNP::MessageHandler::StartRecieveThread()
 	return eNetworkCodes::success;
 }
 
-eNetworkCodes TNP::MessageHandler::ParseMessage()
+eNetworkCodes TNP::MessageHandler::HandleRecievedMessage(const char* aMessage)
 {
-	TNP::MessageType type = (TNP::MessageType)mySocketBuffer[0];
+	TNP::MessageType type = (TNP::MessageType)aMessage[0];
+
+	switch (type)
+	{
+	case TNP::MessageType::error:
+		break;
+	case TNP::MessageType::serverConnectedClientData:
+	{
+		// Copy message
+		TNP::ServerConnectedClientData* msg = new TNP::ServerConnectedClientData();
+		msg->Deserialize(mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+		break;
+	}
+	case TNP::MessageType::serverClientJoined:
+	{
+		// Copy message
+		TNP::ServerClientJoined* msg = new TNP::ServerClientJoined();
+		msg->Deserialize(mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+		break;
+	}
+	case TNP::MessageType::serverClientDisconnected:
+	{
+		// Copy message
+		TNP::ServerClientDisconnected* msg = new TNP::ServerClientDisconnected();
+		msg->Deserialize(mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+		break;
+	}
+	case TNP::MessageType::serverClientMessage:
+	{
+		// Copy message
+		TNP::ServerClientMessage* msg = new TNP::ServerClientMessage();
+		msg->Deserialize(mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+		break;
+	}
+	case TNP::MessageType::serverBundle:
+	{
+		// Copy message
+		TNP::ServerMessageBundle* msg = new TNP::ServerMessageBundle(*(TNP::ServerMessageBundle*)mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+		break;
+	}
+	case TNP::MessageType::updateClients:
+	{		
+		// Copy message
+		TNP::UpdateClientsMessage* msg = new TNP::UpdateClientsMessage();
+		msg->Deserialize(mySocketBuffer);
+
+		myRecievedMessages.push_back(msg);
+
+		break;
+	}
+	default:
+		break;
+	}
+
+
+	return eNetworkCodes();
+}
+
+eNetworkCodes TNP::MessageHandler::ParseMessage(const TNP::Message* aMessage)
+{
+	TNP::MessageType type = aMessage->type;
 
 	switch (type)
 	{
@@ -226,14 +319,15 @@ eNetworkCodes TNP::MessageHandler::ParseMessage()
 	case TNP::MessageType::serverClientJoined:
 	{
 		// Alternativly:
-		TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)mySocketBuffer;
+		TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)aMessage;
+
+		// Create new client here
+		// Subscribe(myClientFactory->CreateClient(msg->id, msg->username));
+
 		msg->id;
 		msg->username;
 
 		//const int clientID = msg->id;
-
-		// Create new client here
-		// Subscribe(myClientFactory->CreateClient(msg->id, msg->username));
 
 
 		// Old, remove this after client factory is done
@@ -302,10 +396,6 @@ eNetworkCodes TNP::MessageHandler::ParseMessage()
 	case TNP::MessageType::updateClients:
 	{
 		TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
-
-		// This needs to sync with all other clients so client should probably not recieve messages
-		// Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
-		// them out to the correct reciever -- Olle
 
 		for (unsigned int i = 0; i < (unsigned int)msg->numberOfClients; i++)
 		{

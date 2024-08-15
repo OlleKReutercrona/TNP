@@ -29,7 +29,7 @@ project "TNP - Client"
 		
 	kind "ConsoleApp"
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++17"
 
 	debugdir "%{dirs.bin}"
 	targetdir ("%{dirs.bin}")

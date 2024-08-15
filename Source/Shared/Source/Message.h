@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include <string>
 #include "tge/math/Vector.h"
 #include "Network-Shared.h"
@@ -107,10 +106,6 @@ namespace TNP
 		Tga::Vector2f position;
 	};
 
-
-	/*
-		Sent from Server to all clients to update the positions of the other connected clients
-	*/
 	struct UpdateClientsMessage : public Message
 	{
 		UpdateClientsMessage() : Message(MessageType::updateClients) {}
@@ -122,14 +117,14 @@ namespace TNP
 			memcpy(this, msg, sizeof(UpdateClientsMessage));
 		}
 
-		struct UpdateClientData
+		struct ClientData
 		{
 			int playerID = -1;
 			Tga::Vector2f position = {-99999};
 		};
 
 		int numberOfClients = -1;
-		std::vector<UpdateClientData> myData = {};
+		std::vector<ClientData> myData{};
 	};
 
 

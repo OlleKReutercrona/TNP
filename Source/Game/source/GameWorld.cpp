@@ -1,26 +1,24 @@
 #include "stdafx.h"
 
 #include "GameWorld.h"
-#include <tge/drawers/SpriteDrawer.h>
-#include <tge/drawers/DebugDrawer.h>
-#include <tge/texture/TextureManager.h>
 #include <tge/graphics/GraphicsEngine.h>
+#include <tge/drawers/SpriteDrawer.h>
+#include <tge/texture/TextureManager.h>
+#include <tge/drawers/DebugDrawer.h>
 
 #include <tge/text/text.h>
 
 #include "Player.h"
 #include "PlayerController.h"
-#include "Client.h"
 
 GameWorld::GameWorld()
 {
-	myClient = new Client();
 }
 
 GameWorld::~GameWorld()
 {
 	isRunning = false;
-	if (C_FAIL(myClient->Shutdown()))
+	if (C_FAIL(myClient.Shutdown()))
 	{
 		std::cout << "SHUTDOWN FAILED" << std::endl;
 	}
@@ -34,7 +32,7 @@ void GameWorld::Init()
 	Tga::Vector2ui resUI = engine.GetRenderSize();
 	
 	
-	if (C_FAIL(myClient->Start()))
+	if (C_FAIL(myClient.Start()))
 	{
 		std::cout << "START FAILED" << std::endl;
 	}
@@ -46,7 +44,7 @@ void GameWorld::Init()
 
 	//StartRecieveMessageThread();
 
-	if (C_FAIL(myClient->Connect()))
+	if (C_FAIL(myClient.Connect()))
 	{
 		std::cout << "CONNECT FAILED" << std::endl;
 	}
@@ -63,7 +61,7 @@ void GameWorld::Init()
 	// Connect to Server
 	myPlayer = new Player();
 	myPlayer->Init(startPosition, true);
-	myClient->AssignPlayer(*myPlayer);
+	myClient.AssignPlayer(*myPlayer);
 	myController = new PlayerController(myPlayer);
 
 
@@ -73,7 +71,7 @@ void GameWorld::Update(float aTimeDelta)
 
 
 
-	if (!myClient->GetHasJoined())
+	if (!myClient.GetHasJoined())
 	{
 		// LOGIN LOGIK
 	}
@@ -133,7 +131,7 @@ void GameWorld::StartRecieveMessageThread()
 				// Todo -> check our own time.
 				timeSinceLastTick += Tga::Engine::GetInstance()->GetDeltaTime();
 
-				if (!myClient->GetHasJoined())
+				if (!myClient.GetHasJoined())
 					continue;
 			
 				// Return if 
@@ -144,7 +142,7 @@ void GameWorld::StartRecieveMessageThread()
 				// Handle messages to send
 				{
 					// Send Client position
-					myClient->SendPositionMessage();
+					myClient.SendPositionMessage();
 				}
 
 

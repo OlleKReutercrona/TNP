@@ -121,7 +121,7 @@ int Server::Run()
 	static int clientAddrSize = sizeof(clientAddressInformation);
 	char mySocketBuffer[NETMESSAGE_SIZE];
 
-	//Timer timer;
+	Timer timer;
 
 	constexpr int tickRate = 64;
 	constexpr float tickTimeStep = 1.0f / (float)tickRate;
@@ -130,7 +130,7 @@ int Server::Run()
 
 	while (isRunning)
 	{
-		//timer.Update();
+		timer.Update();
 
 
 		// Clear the buffer.
@@ -149,7 +149,7 @@ int Server::Run()
 			ProcessMessage(mySocketBuffer, clientAddressInformation);
 		}
 
-		//timeSinceLastTick += timer.GetDeltaTime();
+		timeSinceLastTick += timer.GetDeltaTime();
 
 		if (timeSinceLastTick < tickTimeStep) { continue; }
 
@@ -363,7 +363,7 @@ void Server::SyncClients()
 		data.position = client.position;
 	}
 
-	message.numberOfClients = (int)myConnectedClients.size();
+	message.numberOfClients = myConnectedClients.size();
 
 	SendMessageToAllClients(message, sizeof(message));
 }

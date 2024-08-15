@@ -5,7 +5,7 @@ project "Engine"
 	location (dirs.projectfiles)
 
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++17"
 
 	targetdir (dirs.lib)
 	targetname("%{prj.name}_%{cfg.buildcfg}")

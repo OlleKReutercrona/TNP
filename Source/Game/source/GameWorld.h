@@ -1,7 +1,6 @@
 #pragma once
-#pragma message ("In GameWorld")
-//#include "Client.h"
-#include <thread>
+#include "Client.h"
+
 class PlayerController;
 class Player;
 
@@ -11,9 +10,6 @@ class Player;
 struct MessageThreadData
 {
 };
-
-
-class Client;
 
 class GameWorld
 {
@@ -33,7 +29,7 @@ private:
 
 	Player* myPlayer;
 	PlayerController* myController;
-	Client* myClient;
+	Client myClient;
 
 	MessageThreadData myMessageThreadData;
 

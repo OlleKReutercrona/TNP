@@ -1,11 +1,10 @@
 #pragma once
-#pragma message ("In Client")
-
 #include <thread>
 
 #include "WinSock2.h"
 #include "WS2tcpip.h"
 #include "Network-Shared.h"
+
 #include "Message.h"
 
 #include <unordered_map>
@@ -31,19 +30,19 @@ namespace TNP
 }
 
 // This is jank and should maybe be taken care of by server but probably not
-//struct MessageCounter
-//{
-//	MessageCounter() : myMessages((int)TNP::MessageType::count) {}
-//
-//	int operator()(const int anID) 
-//	{
-//		assert(anID >= 0 && anID < myMessages.size() && "Index out of range");
-//
-//		return myMessages[anID];
-//	}
-//
-//	std::vector<int> myMessages;
-//};
+struct MessageCounter
+{
+	MessageCounter() : myMessages((int)TNP::MessageType::count) {}
+
+	int operator()(const int anID) 
+	{
+		assert(anID >= 0 && anID < myMessages.size() && "Index out of range");
+
+		return myMessages[anID];
+	}
+
+	std::vector<int> myMessages;
+};
 
 class Client
 {
@@ -88,7 +87,7 @@ private:
 	SOCKET myUDPSocket;
 	WSADATA myWinSockData;
 
-	//MessageCounter myMessageCounter;
+	MessageCounter myMessageCounter;
 
 	sockaddr_in myServerAddress;
 	char mySocketBuffer[NETMESSAGE_SIZE];

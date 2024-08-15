@@ -1,5 +1,5 @@
 // Client.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//#include "stdafx.h"
+#include "stdafx.h"
 #include "Client.h"
 #include <iostream>
 #include "Message.h"
@@ -242,7 +242,7 @@ int Client::SendPositionMessage()
 
     message.playerID = myPlayer->GetPID();
     message.position = myPlayer->GetPosition();
-    //message.messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
+    message.messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
 
     return SendClientMessage(message, sizeof(message));
 }
@@ -340,8 +340,7 @@ int Client::HandleRecievedMessage()
     }
     case TNP::MessageType::updateClients:
     {
-        TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
-        msg;
+        //TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
 
         // This needs to sync with all other clients so client should probably not recieve messages
         // Todo -> create a networkHandler or manager or whatever that recieves messages and parses 

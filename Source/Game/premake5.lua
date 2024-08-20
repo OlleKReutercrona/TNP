@@ -36,7 +36,7 @@ project "TNP - Client"
 	targetname("%{prj.name}_%{cfg.buildcfg}")
 	objdir ("%{dirs.temp}/%{prj.name}/%{cfg.buildcfg}")
 
-	links {"External", "Engine", "ws2_32" }
+	links {"External", "Engine", "ws2_32"}
 
 	includedirs { 
 		dirs.external, 

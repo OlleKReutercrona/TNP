@@ -19,6 +19,7 @@ struct ClientData
 
 	// Game Specific Data
 	Tga::Vector2f position;
+	int color;
 };
 
 #define SERVER_FAILED -1

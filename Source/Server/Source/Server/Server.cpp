@@ -195,10 +195,20 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		client.name = message.username;
 		client.sockaddr = someInformation;
 
+		unsigned char red	= (unsigned char)(rand() % 255);
+		unsigned char blue	= (unsigned char)(rand() % 255);
+		unsigned char green	= (unsigned char)(rand() % 255);
+		unsigned char alpha = 255;
+
+		int color = PackColors(red, blue, green, alpha);
+
+		client.color = color;
+
 		myConnectedClients[clientID] = client;
 
 		TNP::ServerClientJoined msg;
 		msg.id = clientID;
+		msg.color = color;
 
 		strcpy_s(msg.username, USERNAME_MAX_LENGTH, client.name.c_str());
 
@@ -209,10 +219,14 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		SendMessageToAllClients(msg, sizeof(msg), clientID);
 
-		if (myConnectedClients.size() > 1)
+		// Server updated newly joined client with the current server data
 		{
 			TNP::ServerConnectedClientData connectionMessage;
 			connectionMessage.numberOfClients = (int)myConnectedClients.size() - 1;
+
+			connectionMessage.clientID = clientID;
+
+			connectionMessage.myColour = color;
 
 			//char* ptr = &connectionMessage.clients[0];
 
@@ -223,6 +237,9 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 				if (conClient.second.myServerID == clientID) continue;
 
 				memcpy(&connectionMessage.clients[index], &conClient.second.myServerID, sizeof(int));
+				index += sizeof(int);
+
+				memcpy(&connectionMessage.clients[index], &conClient.second.color, sizeof(int));
 				index += sizeof(int);
 
 				char* username = (char*)conClient.second.name.c_str();

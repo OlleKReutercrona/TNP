@@ -147,10 +147,12 @@ namespace TNP
 		struct clientData
 		{
 			int id = -1;
+			int color = 0;
 			char username[USERNAME_MAX_LENGTH] = { 0 };
-			// 36 Bytes
+			// 40 Bytes
 		};
-
+		unsigned int clientID = 9999999;
+		int myColour = 0;
 		int numberOfClients = 0;
 		char clients[MESSAGE_MAX_SIZE] = { 0 };
 		//std::vector<clientData> clients;
@@ -173,6 +175,7 @@ namespace TNP
 		}
 
 		int id = -1;
+		int color;
 		char username[USERNAME_MAX_LENGTH] = { 0 };
 	};
 

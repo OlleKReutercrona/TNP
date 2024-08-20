@@ -7,14 +7,17 @@ void PlayerManager::Init()
 }
 
 
-Player* PlayerManager::CreatePlayer(const unsigned int aServerID, const Tga::Vector2f aStartPosition, const bool isLocalPlayer)
+Player* PlayerManager::CreatePlayer(const unsigned int aServerID, const Tga::Color& aColour, const Tga::Vector2f aStartPosition, const bool isLocalPlayer)
 {
 	myPlayers.insert(std::pair<unsigned int, Player*>(aServerID, new Player()));
 
-	myPlayers.at(aServerID)->Init(aStartPosition, isLocalPlayer);
+	Player* p = myPlayers.at(aServerID);
 
+	p->Init(aServerID, aColour, aStartPosition, isLocalPlayer);
 
-	return myPlayers.at(aServerID);
+	if (isLocalPlayer) myLocalPlayer = p;
+
+	return p;
 }
 
 void PlayerManager::AssignLocalPlayer(Player* aPlayer)

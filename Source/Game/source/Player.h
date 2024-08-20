@@ -37,7 +37,7 @@ class Player
 public:
 	Player();
 	~Player() = default;
-	void Init(Tga::Vector2f aStartPosition, bool aIsPlayerOne);
+	void Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition, bool aIsPlayerOne);
 	void SetUsername(std::string aUsername);
 
 
@@ -59,7 +59,10 @@ public:
 		return myIsPlayerOne;
 	}
 
+	int debugColor = 0;
+	Tga::Color debugCColor;
 private:
+
 	Tga::Vector2f myPosition;	
 	SpriteData mySpriteData;
 	UsernameData myUsernameData;

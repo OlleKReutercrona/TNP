@@ -11,6 +11,9 @@
 #include "Player.h"
 #include "PlayerController.h"
 
+#include <chrono>
+#include <thread>
+
 GameWorld::GameWorld()
 {
 }
@@ -27,11 +30,14 @@ GameWorld::~GameWorld()
 
 void GameWorld::Init()
 {
-	auto& engine = *Tga::Engine::GetInstance();
+	//auto& engine = *Tga::Engine::GetInstance();
 
-	Tga::Vector2ui resUI = engine.GetRenderSize();
+	//Tga::Vector2ui resUI = engine.GetRenderSize();
 	
 	
+	myPlayerManager.Init();
+	myClient.Init(myPlayerManager);
+
 	if (C_FAIL(myClient.Start()))
 	{
 		std::cout << "START FAILED" << std::endl;
@@ -48,11 +54,10 @@ void GameWorld::Init()
 	{
 		std::cout << "CONNECT FAILED" << std::endl;
 	}
-	Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
 
+	myController = new PlayerController(myPlayerManager.GetLocalPlayer());
 
-
-
+	//Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
 
 	//if (C_FAIL(myClient.Run()))
 	//{
@@ -60,30 +65,40 @@ void GameWorld::Init()
 	//}
 	// Connect to Server
 
-	myPlayerManager.Init();
-	myPlayer = myPlayerManager.CreatePlayer(0, startPosition, true);
+	//myPlayer = myPlayerManager.CreatePlayer(0, startPosition, true);
 
 	//myPlayer = new Player();
 	//myPlayer->Init(startPosition, true);
-	myClient.Init(myPlayerManager);
-	myClient.AssignPlayer(*myPlayer);
-	myController = new PlayerController(myPlayer);
 
 
+	//myClient.AssignPlayer(*myPlayer);
+	//myController = new PlayerController(myPlayer);
+
+	//while (myClient.GetHasJoined() == false)
+	//{
+	//	myClient.RecieveMessageFromServer();
+
+	//	if (myClient.GetHasJoined())
+	//	{
+	//			myController = new PlayerController(myPlayerManager.GetLocalPlayer());
+	//	}
+
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 60));
+	//}
 }
 void GameWorld::Update(float aTimeDelta)
 {
 
 
 
-	if (!myClient.GetHasJoined())
-	{
-		// LOGIN LOGIK
-	}
-	else
-	{
-		// GAMEPLAY LOGIC
-	}
+	//if (!myClient.GetHasJoined())
+	//{
+	//	// LOGIN LOGIK
+	//}
+	//else
+	//{
+	//	// GAMEPLAY LOGIC
+	//}
 
 
 	// SKICKA MEDDELANDEN

@@ -11,8 +11,10 @@ Player::Player()
 	myPosition = { 0,0 };
 }
 
-void Player::Init(Tga::Vector2f aStartPosition, bool aIsPlayer)
+void Player::Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition, bool aIsPlayer)
 {
+	myServerPID = anID;
+
 	myPosition = aStartPosition;
 	myIsPlayerOne = aIsPlayer;
 	auto& engine = *Tga::Engine::GetInstance();
@@ -26,11 +28,13 @@ void Player::Init(Tga::Vector2f aStartPosition, bool aIsPlayer)
 	
 	mySpriteData.instanceDataHat.myPosition = myPosition;
 	mySpriteData.instanceDataBody.myPosition = myPosition;
-	if (myIsPlayerOne)
-		mySpriteData.instanceDataHat.myColor = { 0,1,1,1 };
-	else
-		mySpriteData.instanceDataHat.myColor = { 1,1,0,1 };
-	
+
+	mySpriteData.instanceDataHat.myColor = aColour;
+
+	if (aIsPlayer)
+	{
+		myUsernameData.text.SetColor({ 0, 1, 0, 1 });
+	}
 
 }
 

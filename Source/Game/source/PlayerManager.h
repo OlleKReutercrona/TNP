@@ -21,7 +21,7 @@ public:
 
 	void Init();
 
-	Player* CreatePlayer(const unsigned int aServerID, const Tga::Vector2f aStartPosition = { 0.0f, 0.0f }, const bool isLocalPlayer = false);
+	Player* CreatePlayer(const unsigned int aServerID, const Tga::Color& aColour, const Tga::Vector2f aStartPosition = { 0.0f, 0.0f }, const bool isLocalPlayer = false);
 	bool DeletePlayer(const unsigned int anID);
 
 	void AssignLocalPlayer(Player* aPlayer);

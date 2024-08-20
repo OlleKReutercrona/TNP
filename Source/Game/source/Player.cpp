@@ -43,16 +43,14 @@ void Player::SetUsername(std::string aUsername)
 void Player::Update(const float& aDeltaTime, PlayerControllerData& aPlayerControllerData)
 {
 	myPosition += aPlayerControllerData.inputDirection * aDeltaTime * myMovementSpeed;
-
-
-	mySpriteData.instanceDataHat.myPosition = myPosition;
-	mySpriteData.instanceDataBody.myPosition = myPosition;
-	myUsernameData.text.SetPosition(myPosition + myUsernameData.offset);
-
 }
 
 void Player::Render(Tga::SpriteDrawer& aSpriteDrawer)
 {
+	mySpriteData.instanceDataHat.myPosition = myPosition;
+	mySpriteData.instanceDataBody.myPosition = myPosition;
+	myUsernameData.text.SetPosition(myPosition + myUsernameData.offset);
+
 	aSpriteDrawer.Draw(mySpriteData.sharedDataBody, mySpriteData.instanceDataBody);
 	aSpriteDrawer.Draw(mySpriteData.sharedDataHat, mySpriteData.instanceDataHat);
 	myUsernameData.text.Render();

@@ -33,6 +33,7 @@ struct SpriteData
 
 class Player 
 {
+	friend class PlayerManager;
 public:
 	Player();
 	~Player() = default;

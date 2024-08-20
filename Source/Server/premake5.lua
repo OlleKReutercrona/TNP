@@ -25,7 +25,7 @@ project "TNP - Server"
 		dirs.shared.. "/Source", 
 	}
 
-	links {"ws2_32"}
+	links {"ws2_32", "Engine"}
 
 	libdirs { dirs.lib, dirs.dependencies, dirs.share }
 

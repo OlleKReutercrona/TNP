@@ -44,11 +44,15 @@ struct MessageCounter
 	std::vector<int> myMessages;
 };
 
+class PlayerManager;
+
 class Client
 {
 public:
 	Client() = default;
 	~Client();
+
+	void Init(PlayerManager& aPlayerManager);
 
 	int Start();
 	int Connect();
@@ -74,6 +78,8 @@ private:
 	int SendClientMessage(const TNP::Message& aMSG, const int aSize);
 
 	int HandleRecievedMessage();
+
+	PlayerManager* myPlayerManager;
 
 	Player* myPlayer;
 

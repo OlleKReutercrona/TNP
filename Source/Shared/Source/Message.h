@@ -124,7 +124,8 @@ namespace TNP
 		};
 
 		int numberOfClients = -1;
-		std::vector<ClientData> myData{};
+		char data[MAX_PLAYERS * (sizeof(int) + sizeof(Tga::Vector2f))];
+		//std::vector<ClientData> myData{};
 	};
 
 

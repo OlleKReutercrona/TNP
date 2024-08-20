@@ -289,6 +289,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 			// Position is okay, maybe handle it?
 
 			myConnectedClients.at(clientID).position = message.position;
+
+			//std::cout << "Client " << clientID << " position: " <<  message.position.x << ", " << message.position.y << "\n";
 			break;
 		}
 
@@ -354,16 +356,24 @@ void Server::SyncClients()
 
 	TNP::UpdateClientsMessage message;
 
+	char* ptr = &message.data[0];
+
 	// temp send all clients positions
 	for (auto& [playerID, client] : myConnectedClients)
 	{
-		auto& data = message.myData.emplace_back();
+		memcpy(ptr, &client.myServerID, sizeof(int));
+		ptr += sizeof(int);
 
-		data.playerID = client.myServerID;
-		data.position = client.position;
+		memcpy(ptr, &client.position, sizeof(Tga::Vector2f));
+		ptr += sizeof(Tga::Vector2f);
+
+		//auto& data = message.myData.emplace_back();
+
+		//data.playerID = client.myServerID;
+		//data.position = client.position;
 	}
 
-	message.numberOfClients = myConnectedClients.size();
+	message.numberOfClients = (int)myConnectedClients.size();
 
 	SendMessageToAllClients(message, sizeof(message));
 }

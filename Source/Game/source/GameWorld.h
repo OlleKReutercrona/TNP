@@ -1,5 +1,6 @@
 #pragma once
 #include "Client.h"
+#include "PlayerManager.h"
 
 class PlayerController;
 class Player;
@@ -26,7 +27,7 @@ public:
 private:
 	
 
-
+	PlayerManager myPlayerManager;
 	Player* myPlayer;
 	PlayerController* myController;
 	Client myClient;

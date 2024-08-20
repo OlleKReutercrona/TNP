@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Message.h"
 #include "Player.h"
+#include "PlayerManager.h"
 // Allows us to gracefully exit the program loop.
 std::atomic<bool> isRunning = true;
 std::atomic<bool> hasMessage = false;
@@ -11,6 +12,11 @@ std::atomic<bool> hasMessage = false;
 Client::~Client()
 {
     Shutdown(); 
+}
+
+void Client::Init(PlayerManager& aPlayerManager)
+{
+    myPlayerManager = &aPlayerManager;
 }
 
 void Client::AssignPlayer(Player& aPlayer)
@@ -286,6 +292,8 @@ int Client::HandleRecievedMessage()
         myConnectedClients[clientID] = msg->username;
 
         std::cout << "Client " << msg->username << " joined the server!" << std::endl;
+        Player* p = myPlayerManager->CreatePlayer(clientID);
+        p->SetUsername(msg->username);
         break;
     }
     case TNP::MessageType::serverClientDisconnected: 
@@ -324,6 +332,8 @@ int Client::HandleRecievedMessage()
             
             char username[USERNAME_MAX_LENGTH];
 
+            ZeroMemory(username, USERNAME_MAX_LENGTH);
+
             memcpy(username, ptr, USERNAME_MAX_LENGTH);
 
             ptr += USERNAME_MAX_LENGTH;
@@ -334,6 +344,8 @@ int Client::HandleRecievedMessage()
 
             std::cout << name << std::endl;
 
+            Player* p = myPlayerManager->CreatePlayer(id);
+            p->SetUsername(name);
         }
 
         break;
@@ -345,6 +357,24 @@ int Client::HandleRecievedMessage()
         // This needs to sync with all other clients so client should probably not recieve messages
         // Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
         // them out to the correct reciever -- Olle
+
+        TNP::UpdateClientsMessage msg;
+        msg.Deserialize(mySocketBuffer);
+
+        char* ptr = msg.data;
+
+        for (int i = 0; i < msg.numberOfClients; i++)
+        {
+            unsigned int id = 0;
+            memcpy(&id, ptr, sizeof(unsigned int));
+            ptr += sizeof(unsigned int);
+
+            Tga::Vector2f pos;
+            memcpy(&pos, ptr, sizeof(Tga::Vector2f));
+            ptr += sizeof(Tga::Vector2f);
+
+            myPlayerManager->UpdatePlayer(id, { pos });
+        }
 
 
         break;

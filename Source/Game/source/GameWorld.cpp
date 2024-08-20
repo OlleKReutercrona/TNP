@@ -42,7 +42,7 @@ void GameWorld::Init()
 
 
 
-	//StartRecieveMessageThread();
+	StartRecieveMessageThread();
 
 	if (C_FAIL(myClient.Connect()))
 	{
@@ -59,8 +59,13 @@ void GameWorld::Init()
 	//	std::cout << "START FAILED" << std::endl;
 	//}
 	// Connect to Server
-	myPlayer = new Player();
-	myPlayer->Init(startPosition, true);
+
+	myPlayerManager.Init();
+	myPlayer = myPlayerManager.CreatePlayer(0, startPosition, true);
+
+	//myPlayer = new Player();
+	//myPlayer->Init(startPosition, true);
+	myClient.Init(myPlayerManager);
 	myClient.AssignPlayer(*myPlayer);
 	myController = new PlayerController(myPlayer);
 
@@ -83,12 +88,13 @@ void GameWorld::Update(float aTimeDelta)
 
 	// SKICKA MEDDELANDEN
 	myController->Update(aTimeDelta);
-	
+	myClient.SendPositionMessage();
 
 
 
 	// Recieve message from server THREAD
 	// handle
+	myClient.RecieveMessageFromServer();
 
 	// Input 
 	// Sends messages to server for verification
@@ -101,7 +107,8 @@ void GameWorld::Render()
 	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	// Game update
 	{
-		myPlayer->Render(spriteDrawer);
+		//myPlayer->Render(spriteDrawer);
+		myPlayerManager.Render(spriteDrawer);
 	}
 
 	if (!_RENDERDEBUG)
@@ -109,7 +116,8 @@ void GameWorld::Render()
 
 	Tga::DebugDrawer& debugDrawer(engine.GetDebugDrawer());
 	{
-		myPlayer->DebugRender(debugDrawer);
+		//myPlayer->DebugRender(debugDrawer);
+		myPlayerManager.DebugRender(debugDrawer);
 	}
 }
 

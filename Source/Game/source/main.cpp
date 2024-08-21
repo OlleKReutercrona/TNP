@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameWorld.h"
+#include "Global.h"
 
 void Go(void);
 
@@ -8,6 +9,8 @@ int main(const int /*argc*/, const char* /*argc*/[])
 	Go();
 	return 0;
 }
+
+
 
 LRESULT WinProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -22,6 +25,10 @@ LRESULT WinProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// close the application entirely
 		PostQuitMessage(0);
 		return 0;
+	}
+	case WM_ACTIVATE:
+	{
+		isWindowActive = wParam;
 	}
 	}
 

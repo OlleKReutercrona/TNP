@@ -11,15 +11,24 @@
 
 struct ClientData
 {
+	int clientPort;
 	int myServerID;
 	std::string name;
 	//std::string connectionIP;
 	sockaddr_in sockaddr;
 	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer;
 
+	float timeSinceLastMessage = 0.0f;
+
 	// Game Specific Data
 	Tga::Vector2f position;
 	int color;
+};
+
+struct ClientPositionUpdateData
+{
+	int PID;
+	Tga::Vector2f newPosition;
 };
 
 #define SERVER_FAILED -1
@@ -53,6 +62,7 @@ public:
 
 	int Start();
 	int StartInputThread(SOCKET& aSocket);
+	int StartMessageInThread();
 
 	int Run();
 	int Shutdown();
@@ -62,7 +72,7 @@ private:
 
 	TNP::MessageType DetermineMessageType(const char* aMessage);
 
-	void HandleClientDisconnect(TNP::ClientDisconnect& aMessage, const int aClientPort);
+	void HandleClientDisconnect(const ClientData& aClient);
 
 	//void HandleClientJoined(TNP::ClientJoin& aMessage, const ClientData& someClientData);
 
@@ -73,17 +83,17 @@ private:
 	// Data members
 	std::map<int, int> myPortToID = {};
 	std::unordered_map<int, ClientData> myConnectedClients = {};
-	//std::map<int, TNP::CircularBuffer <TNP::Message>> myBuffers = {};
 
+	//std::map<int, TNP::CircularBuffer <TNP::Message>> myBuffers = {};
+	std::unordered_map<int, ClientPositionUpdateData> myUpdateData = {};
+	
 	std::thread myInputThread = {};
+	std::thread myMessageThread = {};
+	std::mutex myClientDataMutex;
 
 	// Network members
 	SOCKET myUDPSocket = {};
 	WSADATA myWinSockData = {};
 
 	sockaddr_in myBindAddressInformation = {};
-	//sockaddr_in myClientAddressInformation = {};
-
-	//int myAddrClientSize = sizeof(myClientAddressInformation);
-	//char mySocketBuffer[NETMESSAGE_SIZE] = {0};
 };

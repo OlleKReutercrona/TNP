@@ -2,7 +2,7 @@
 
 #include "PlayerController.h"
 #include "Player.h"
-
+#include "Global.h"
 
 
 PlayerController::PlayerController(Player* aPlayer)
@@ -43,6 +43,8 @@ void PlayerController::Update(const float& aDeltaTime)
 void PlayerController::UpdateControllerData()
 {
 	myPlayerControllerData.inputDirection = { 0,0 };
+
+	if (isWindowActive == 0) return;
 
 	if (GetAsyncKeyState(myInputMapper.up))
 		myPlayerControllerData.inputDirection += { 0, 1 };

@@ -77,6 +77,7 @@ namespace Tga
 	template <class T> Vector2<T> operator/(const Vector2<T>& aVector, const float& aScalar);
 	template <class T> Vector2<T> operator/(const Vector2<T>& aVector0, const Vector2<T>& aVector1);
 	template <class T> bool operator==(const Vector2<T>& aVector0, const Vector2<T>& aVector1);
+	template <class T> bool operator!=(const Vector2<T>& aVector0, const Vector2<T>& aVector1);
 
 	template <class T> void operator+=(Vector2<T>& aVector0, const Vector2<T>& aVector1);
 	template <class T> void operator-=(Vector2<T>& aVector0, const Vector2<T>& aVector1);
@@ -242,6 +243,12 @@ namespace Tga
 	bool operator==(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
 	{
 		return aVector0.X == aVector1.X && aVector0.Y == aVector1.Y;
+	}
+
+	template<class T>
+	bool operator!=(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
+	{
+		return aVector0.X != aVector1.X || aVector0.Y != aVector1.Y;
 	}
 
 	template <class T>

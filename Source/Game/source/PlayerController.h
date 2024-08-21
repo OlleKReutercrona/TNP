@@ -39,4 +39,5 @@ private:
 	PlayerControllerData myPlayerControllerData;
 	InputMapper myInputMapper;
 	Player* myPlayer;
+	HWND myHWND;
 };

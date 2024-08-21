@@ -4,7 +4,7 @@ project "TNP - Shared"
 	location(dirs.projectfiles)
 	language "C++"
 	cppdialect "C++17"
-	kind "ConsoleApp"
+	kind "StaticLib"
 
 	files {
 		dirs.shared.."**.h",

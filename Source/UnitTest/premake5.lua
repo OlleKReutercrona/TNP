@@ -27,7 +27,6 @@ project "TNP - UnitTest"
 		"$(VCInstallDir)Auxiliary/VS/UnitTest/lib" 
 	}
 
-
 	debugdir "%{dirs.bin}"
 	targetdir ("%{dirs.bin}")
 	targetname("%{prj.name}_%{cfg.buildcfg}")

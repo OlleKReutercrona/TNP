@@ -403,6 +403,21 @@ int Server::Shutdown()
 	return SERVER_QUIT;
 }
 
+std::string Server::UT_ProcessMessageClientJoin(const char* aMessage)
+{
+	TNP::MessageType type = DetermineMessageType(aMessage);
+	std::string name = "";
+	if (type == TNP::MessageType::clientJoin)
+	{
+		TNP::ClientJoin message;
+		message.Deserialize(aMessage);
+		name = message.username;
+		return name;
+	}
+	return name;
+}
+
+
 
 
 TNP::MessageType Server::DetermineMessageType(const char* aMessage)

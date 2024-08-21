@@ -57,6 +57,10 @@ public:
 	int Run();
 	int Shutdown();
 
+
+	std::string UT_ProcessMessageClientJoin(const char* aMessage);
+
+
 private:
 	void ProcessMessage(const char* aMessage, sockaddr_in& someInformation);
 

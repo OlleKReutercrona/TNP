@@ -4,7 +4,10 @@ project "TNP - UnitTest"
 	location(dirs.projectfiles)
 	language "C++"
 	cppdialect "C++17"
-	kind "SharedLib"
+	kind "ConsoleApp"
+	dependson{"External", "Engine", "TNP - Server", "TNP - Client"}
+
+	links { "External", "Engine"}
 
 	files {
 		dirs.unitTest.."**.h",
@@ -15,6 +18,7 @@ project "TNP - UnitTest"
 	includedirs { 
 		"$(VCInstallDir)Auxiliary/VS/UnitTest/include",
 		dirs.engine,
+		dirs.external,
 		dirs.server .. "/Source", 
 		dirs.game.. "/Source",
 		dirs.shared.. "/Source", 
@@ -45,6 +49,7 @@ project "TNP - UnitTest"
 		runtime "Release"
 		optimize "on"
 
+	kind "SharedLib"
 	filter "system:windows"
 	staticruntime "off"
 	symbols "On"

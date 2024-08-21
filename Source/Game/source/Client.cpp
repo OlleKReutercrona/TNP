@@ -393,7 +393,7 @@ int Client::HandleRecievedMessage()
 			}
 
 			// Username
-			char username[USERNAME_MAX_LENGTH];
+			char username[USERNAME_MAX_LENGTH] = { 0 };
 			{
 				ZeroMemory(username, USERNAME_MAX_LENGTH);
 

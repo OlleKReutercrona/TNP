@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "tge/math/Vector.h"
 #include "Network-Shared.h"
 
@@ -8,12 +9,12 @@ namespace TNP
 	enum class MessageType
 	{
 		error,								// Something went wrong
-		
+
 		//Client							
 		clientJoin,							// Sent from client when requesting to join
 		clientDisconnect,					// Sent from client to tell server that they disconnected
 		clientMessage,						// Message sent from client to server
-		clientSendPosition,					
+		clientSendPosition,
 
 
 		//Server
@@ -65,7 +66,7 @@ namespace TNP
 	{
 		ClientDisconnect() : Message(MessageType::clientDisconnect) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ClientDisconnect* msg = (TNP::ClientDisconnect*)(aRawMessage);
 
@@ -77,7 +78,7 @@ namespace TNP
 	{
 		ClientMessage() : Message(MessageType::clientMessage) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ClientMessage* msg = (TNP::ClientMessage*)(aRawMessage);
 
@@ -95,7 +96,7 @@ namespace TNP
 	{
 		ClientMovedMessage() : Message(MessageType::clientSendPosition) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
 
@@ -120,7 +121,7 @@ namespace TNP
 		struct ClientData
 		{
 			int playerID = -1;
-			Tga::Vector2f position = {-99999};
+			Tga::Vector2f position = { -99999 };
 		};
 
 		int numberOfClients = -1;
@@ -137,11 +138,27 @@ namespace TNP
 	{
 		ServerConnectedClientData() : Message(MessageType::serverConnectedClientData) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ServerConnectedClientData* msg = (TNP::ServerConnectedClientData*)(aRawMessage);
 
 			memcpy(this, msg, sizeof(ServerConnectedClientData));
+		}
+
+		void SerializeData(int index, const int& id, const int& color, const Tga::Vector2f& pos, const std::string& name)
+		{
+			memcpy(&clients[index], &id, sizeof(int));
+			index += sizeof(int);
+
+			memcpy(&clients[index], &color, sizeof(int));
+			index += sizeof(int);
+
+			memcpy(&clients[index], &pos, sizeof(Tga::Vector2f));
+			index += sizeof(Tga::Vector2f);
+
+			char* username = (char*)name.c_str();
+			memcpy(&clients[index], username, USERNAME_MAX_LENGTH);
+			index += USERNAME_MAX_LENGTH;
 		}
 
 		struct clientData
@@ -158,6 +175,50 @@ namespace TNP
 		char clients[MESSAGE_MAX_SIZE] = { 0 };
 		//std::vector<clientData> clients;
 	};
+	struct DeSerServerConnectedClientData
+	{
+		unsigned int clientID = 9999999;
+		int myColour = 0;
+		int numberOfClients = 0;
+		std::vector < ServerConnectedClientData::clientData> myData;
+
+		DeSerServerConnectedClientData Deserialize(ServerConnectedClientData& message)
+		{
+			clientID = message.clientID;
+			myColour = message.myColour;
+			numberOfClients = message.numberOfClients;
+
+			char* ptr = &message.clients[0];
+			for (int i = 0; i < numberOfClients; i++)
+			{
+				ServerConnectedClientData::clientData& data = myData.emplace_back();
+
+				// Id
+				{
+					memcpy(&data.id, ptr, sizeof(int));
+					ptr += sizeof(int);
+				}
+
+				// Color
+				{
+					memcpy(&data.color, ptr, sizeof(int));
+					ptr += sizeof(int);
+				}
+
+				// Position
+				{
+					memcpy(&data.position, ptr, sizeof(Tga::Vector2f));
+					ptr += sizeof(Tga::Vector2f);
+				}
+
+				// Username
+				{
+					memcpy(&data.username, ptr, USERNAME_MAX_LENGTH);
+					ptr += USERNAME_MAX_LENGTH;
+				}
+			}
+		}
+	};
 
 
 	/*
@@ -168,7 +229,7 @@ namespace TNP
 	{
 		ServerClientJoined() : Message(MessageType::serverClientJoined) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ServerClientJoined* msg = (TNP::ServerClientJoined*)(aRawMessage);
 
@@ -189,7 +250,7 @@ namespace TNP
 	{
 		ServerClientDisconnected() : Message(MessageType::serverClientDisconnected) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)(aRawMessage);
 
@@ -207,7 +268,7 @@ namespace TNP
 	{
 		ServerClientMessage() : Message(MessageType::serverClientMessage) {}
 
-		void Deserialize(const char* aRawMessage) 
+		void Deserialize(const char* aRawMessage)
 		{
 			TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)(aRawMessage);
 

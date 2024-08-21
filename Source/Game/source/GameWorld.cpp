@@ -42,6 +42,8 @@ void GameWorld::Init()
 	{
 		std::cout << "START FAILED" << std::endl;
 	}
+	std::cout << "Client has started" << std::endl;
+	std::cout << "Client trying to connect..." << std::endl;
 
 
 	//Message Recieve Thread

@@ -209,7 +209,7 @@ int Server::Run()
 			std::vector<int> inactiveClients;
 			for (auto& [id, client] : myConnectedClients)
 			{
-				if (client.timeSinceLastMessage >= 1.0f)
+				if (client.timeSinceLastMessage >= 1.5f)
 				{
 					inactiveClients.emplace_back(id);
 				}
@@ -225,6 +225,8 @@ int Server::Run()
 
 					TNP::ServerClientDisconnected msg;
 					msg.id = myPortToID[client.clientPort];
+
+					std::cout << "[SERVER] User '" << client.name << "' has timed out from the server." << std::endl;
 
 					HandleClientDisconnect(client);
 
@@ -264,6 +266,11 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		//TNP::ClientJoin message = *(TNP::ClientJoin*)&aMessage;
 
 		const int clientID = CreateID(clientPort);
+		if (clientID < 0)
+		{
+			std::cout << "Recieved duplicate join messages from client [" << message.username << "] , discarding latest...\n";
+			break;
+		}
 
 		ClientData client;
 		client.myServerID = clientID;
@@ -341,6 +348,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		msg.id = myPortToID[clientPort];
 		ClientData& client = myConnectedClients.at(msg.id);
 
+		std::cout << "[SERVER] User '" << client.name << "' has disconnected from the server." << std::endl;
+
 		HandleClientDisconnect(client);
 
 		SendMessageToAllClients(msg, sizeof(msg));
@@ -408,7 +417,10 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	}
 
 	const int clientID = myPortToID.at(clientPort);
-	myConnectedClients.at(clientID).timeSinceLastMessage = 0.0f;
+	if (myConnectedClients.count(clientID) > 0)
+	{
+		myConnectedClients.at(clientID).timeSinceLastMessage = 0.0f;
+	}
 }
 
 int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip)
@@ -497,8 +509,6 @@ TNP::MessageType Server::DetermineMessageType(const char* aMessage)
 
 void Server::HandleClientDisconnect(const ClientData& aClient)
 {
-	std::cout << "[SERVER] User '" << aClient.name << "' has disconnected from the server." << std::endl;
-
 	// Remove cached data of client
 	myConnectedClients.erase(aClient.myServerID);
 	myPortToID.erase(aClient.clientPort);

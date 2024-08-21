@@ -66,11 +66,11 @@ int Client::Start()
 	// This then allows us to use recvfrom as we please because the udpSocket
 	// is already bound for us in an appropriate way.
 
-	if (C_FAIL(StartInputThread()))
-	{
-		std::cout << "Input thread failed" << std::endl;
-		return C_FAILED;
-	}
+	//if (C_FAIL(StartInputThread()))
+	//{
+	//	std::cout << "Input thread failed" << std::endl;
+	//	return C_FAILED;
+	//}
 
 
 	return C_SUCCESS;
@@ -85,7 +85,8 @@ int Client::Connect()
 		std::cout << "Enter a username: ";
 		while (!hasMessage)
 		{
-			continue;
+			std::cin.getline(myMessage, NETMESSAGE_SIZE);
+			hasMessage = true;
 		}
 		std::string messageStr(myMessage);
 		if (messageStr.size() <= USERNAME_MAX_LENGTH)
@@ -153,28 +154,6 @@ int Client::Connect()
 		}
 	}
 	return C_SUCCESS;
-}
-
-int Client::StartInputThread()
-{
-	//char message[512]{ 0 };
-	myInputThread = std::thread([&]
-		{
-			// very basic async input setup... we read input on a different thread
-			while (isRunning)
-			{
-				while (hasMessage) // wait until message is processed before reading the next one;
-				{
-					if (!isRunning) break;
-
-					std::this_thread::yield();
-				}
-				std::cin.getline(myMessage, NETMESSAGE_SIZE);
-				hasMessage = true;
-			}
-		});
-
-	return 0;
 }
 
 int Client::Run()
@@ -267,8 +246,7 @@ int Client::Shutdown()
 	WSACleanup();
 	isRunning = false;
 
-	myInputThread.join();
-	//myInputThread.detach();
+	std::cout << "Client has shutdown\n";
 
 	return C_QUIT;
 }

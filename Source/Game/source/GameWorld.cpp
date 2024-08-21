@@ -42,6 +42,8 @@ void GameWorld::Init()
 	{
 		std::cout << "START FAILED" << std::endl;
 	}
+	std::cout << "Client has started" << std::endl;
+	std::cout << "Client trying to connect..." << std::endl;
 
 
 	//Message Recieve Thread
@@ -53,38 +55,12 @@ void GameWorld::Init()
 	if (C_FAIL(myClient.Connect()))
 	{
 		std::cout << "CONNECT FAILED" << std::endl;
+		isRunning = false;
+		PostQuitMessage(0);
+		return;
 	}
 
 	myController = new PlayerController(myPlayerManager.GetLocalPlayer());
-
-	//Tga::Vector2f startPosition = { (float)resUI.x / 2, (float)resUI.y / 2 };
-
-	//if (C_FAIL(myClient.Run()))
-	//{
-	//	std::cout << "START FAILED" << std::endl;
-	//}
-	// Connect to Server
-
-	//myPlayer = myPlayerManager.CreatePlayer(0, startPosition, true);
-
-	//myPlayer = new Player();
-	//myPlayer->Init(startPosition, true);
-
-
-	//myClient.AssignPlayer(*myPlayer);
-	//myController = new PlayerController(myPlayer);
-
-	//while (myClient.GetHasJoined() == false)
-	//{
-	//	myClient.RecieveMessageFromServer();
-
-	//	if (myClient.GetHasJoined())
-	//	{
-	//			myController = new PlayerController(myPlayerManager.GetLocalPlayer());
-	//	}
-
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 60));
-	//}
 }
 void GameWorld::Update(float aTimeDelta)
 {
@@ -103,7 +79,7 @@ void GameWorld::Update(float aTimeDelta)
 
 	// SKICKA MEDDELANDEN
 	myController->Update(aTimeDelta);
-	myClient.SendPositionMessage();
+	//myClient.SendPositionMessage();
 
 
 

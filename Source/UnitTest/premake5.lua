@@ -15,7 +15,9 @@ project "TNP - UnitTest"
 	includedirs { 
 		"$(VCInstallDir)Auxiliary/VS/UnitTest/include",
 		dirs.engine,
-		dirs.game,
+		dirs.server .. "/Source", 
+		dirs.game.. "/Source",
+		dirs.shared.. "/Source", 
 	}
 
 

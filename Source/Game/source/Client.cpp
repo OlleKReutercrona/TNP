@@ -66,11 +66,11 @@ int Client::Start()
 	// This then allows us to use recvfrom as we please because the udpSocket
 	// is already bound for us in an appropriate way.
 
-	if (C_FAIL(StartInputThread()))
-	{
-		std::cout << "Input thread failed" << std::endl;
-		return C_FAILED;
-	}
+	//if (C_FAIL(StartInputThread()))
+	//{
+	//	std::cout << "Input thread failed" << std::endl;
+	//	return C_FAILED;
+	//}
 
 
 	return C_SUCCESS;
@@ -85,7 +85,8 @@ int Client::Connect()
 		std::cout << "Enter a username: ";
 		while (!hasMessage)
 		{
-			continue;
+			std::cin.getline(myMessage, NETMESSAGE_SIZE);
+			hasMessage = true;
 		}
 		std::string messageStr(myMessage);
 		if (messageStr.size() <= USERNAME_MAX_LENGTH)
@@ -153,28 +154,6 @@ int Client::Connect()
 		}
 	}
 	return C_SUCCESS;
-}
-
-int Client::StartInputThread()
-{
-	//char message[512]{ 0 };
-	myInputThread = std::thread([&]
-		{
-			// very basic async input setup... we read input on a different thread
-			while (isRunning)
-			{
-				while (hasMessage) // wait until message is processed before reading the next one;
-				{
-					if (!isRunning) break;
-
-					std::this_thread::yield();
-				}
-				std::cin.getline(myMessage, NETMESSAGE_SIZE);
-				hasMessage = true;
-			}
-		});
-
-	return 0;
 }
 
 int Client::Run()
@@ -267,8 +246,7 @@ int Client::Shutdown()
 	WSACleanup();
 	isRunning = false;
 
-	//myInputThread.join();
-	myInputThread.detach();
+	std::cout << "Client has shutdown\n";
 
 	return C_QUIT;
 }
@@ -341,6 +319,7 @@ int Client::HandleRecievedMessage()
 		std::cout << "Client " << myConnectedClients[clientID] << " disconnected the server!" << std::endl;
 
 		myConnectedClients.erase(clientID);
+		myPlayerManager->DeletePlayer(clientID);
 		break;
 	}
 	case TNP::MessageType::serverClientMessage:
@@ -389,39 +368,58 @@ int Client::HandleRecievedMessage()
 		char* ptr = msg->clients;
 		for (int i = 0; i < msg->numberOfClients; i++)
 		{
+			// ID
 			int id;
-			memcpy(&id, ptr, sizeof(int));
+			{
+				memcpy(&id, ptr, sizeof(int));
 
-			ptr += sizeof(int);
+				ptr += sizeof(int);
+			}
 
+			// Color
 			int color = 0;
+			{
+				memcpy(&color, ptr, sizeof(int));
 
-			memcpy(&color, ptr, sizeof(int));
+				ptr += sizeof(int);
+			}
 
-			ptr += sizeof(int);
+			// Position
+			Tga::Vector2f pos;
+			{
+				memcpy(&pos, ptr, sizeof(Tga::Vector2f));
 
+				ptr += sizeof(Tga::Vector2f);
+			}
+
+			// Username
 			char username[USERNAME_MAX_LENGTH];
+			{
+				ZeroMemory(username, USERNAME_MAX_LENGTH);
 
-			ZeroMemory(username, USERNAME_MAX_LENGTH);
+				memcpy(username, ptr, USERNAME_MAX_LENGTH);
 
-			memcpy(username, ptr, USERNAME_MAX_LENGTH);
+				ptr += USERNAME_MAX_LENGTH;
+			}
 
-			ptr += USERNAME_MAX_LENGTH;
 
-			std::string name(username);
+			// Use unpacked data
+			{
+				std::string name(username);
 
-			myConnectedClients[id] = name;
+				myConnectedClients[id] = name;
 
-			std::cout << name << std::endl;
+				std::cout << name << std::endl;
 
-			Tga::Color newColor;
+				Tga::Color newColor;
 
-			UnpackColors(color, newColor.myR, newColor.myG, newColor.myB, newColor.myA);
+				UnpackColors(color, newColor.myR, newColor.myG, newColor.myB, newColor.myA);
 
-			Player* p = myPlayerManager->CreatePlayer(id, newColor);
-			p->SetUsername(name);
-			p->debugColor = msg->myColour;
-			p->debugCColor = newColor;
+				Player* p = myPlayerManager->CreatePlayer(id, newColor, pos);
+				p->SetUsername(name);
+				p->debugColor = msg->myColour;
+				p->debugCColor = newColor;
+			}
 		}
 
 		break;
@@ -441,9 +439,16 @@ int Client::HandleRecievedMessage()
 
 		for (int i = 0; i < msg.numberOfClients; i++)
 		{
+
 			unsigned int id = 0;
 			memcpy(&id, ptr, sizeof(unsigned int));
 			ptr += sizeof(unsigned int);
+
+			if (id == (unsigned int)myPlayer->GetPID())
+			{
+				ptr += sizeof(Tga::Vector2f);
+				continue;
+			}
 
 			Tga::Vector2f pos;
 			memcpy(&pos, ptr, sizeof(Tga::Vector2f));

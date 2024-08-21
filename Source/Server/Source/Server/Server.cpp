@@ -4,7 +4,7 @@
 #include <iostream>
 #include <ws2tcpip.h>
 #include <tge/Timer.h>
-
+#include <mutex>
 #define LISTEN_PORT 42000
 
 // Allows us to gracefully exit the program loop.
@@ -108,6 +108,41 @@ int Server::StartInputThread(SOCKET& aSocket)
 	return INPUT_THREAD_QUIT;
 }
 
+int Server::StartMessageInThread()
+{
+	myMessageThread = std::thread([this]
+		{
+			sockaddr_in clientAddressInformation = {};
+			static int clientAddrSize = sizeof(clientAddressInformation);
+			char socketBuffer[NETMESSAGE_SIZE];
+
+			while (isRunning)
+			{
+				// Clear the buffer.
+				ZeroMemory(socketBuffer, NETMESSAGE_SIZE);
+
+				// blocking receive. This function will block until a message is received.
+				const int recv_len = recvfrom(myUDPSocket, socketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&clientAddressInformation, &clientAddrSize);
+				if (recv_len == SOCKET_ERROR)
+				{
+					if (WSAGetLastError() == 10054) continue;
+
+					std::cout << "Failed receiving data from socket." << std::endl;
+					std::cout << "Error: " << WSAGetLastError() << std::endl;
+				}
+
+				if (recv_len > 0)
+				{
+					std::lock_guard<std::mutex> guard(myClientDataMutex);
+
+					ProcessMessage(socketBuffer, clientAddressInformation);
+				}
+			}
+		});
+
+	return 0;
+}
+
 int Server::Run()
 {
 	if (S_FAIL(StartInputThread(myUDPSocket)))
@@ -117,9 +152,15 @@ int Server::Run()
 
 	std::cout << "\nMessage Log: " << std::endl;
 
-	sockaddr_in clientAddressInformation = {};
-	static int clientAddrSize = sizeof(clientAddressInformation);
-	char mySocketBuffer[NETMESSAGE_SIZE];
+	//sockaddr_in clientAddressInformation = {};
+	//static int clientAddrSize = sizeof(clientAddressInformation);
+	//char mySocketBuffer[NETMESSAGE_SIZE];
+
+	if(S_FAIL(StartMessageInThread()))
+	{
+		return SERVER_FAILED;
+	}
+
 
 	Timer timer;
 
@@ -132,22 +173,26 @@ int Server::Run()
 	{
 		timer.Update();
 
-
-		// Clear the buffer.
-		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
-
-		// blocking receive. This function will block until a message is received.
-		const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&clientAddressInformation, &clientAddrSize);
-		if (recv_len == SOCKET_ERROR)
+		for (auto& [id, client] : myConnectedClients)
 		{
-			std::cout << "Failed receiving data from socket." << std::endl;
-			std::cout << "Error: " << WSAGetLastError() << std::endl;
+			client.timeSinceLastMessage += timer.GetDeltaTime();
 		}
 
-		if (recv_len > 0)
-		{
-			ProcessMessage(mySocketBuffer, clientAddressInformation);
-		}
+		//// Clear the buffer.
+		//ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
+
+		//// blocking receive. This function will block until a message is received.
+		//const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&clientAddressInformation, &clientAddrSize);
+		//if (recv_len == SOCKET_ERROR)
+		//{
+		//	std::cout << "Failed receiving data from socket." << std::endl;
+		//	std::cout << "Error: " << WSAGetLastError() << std::endl;
+		//}
+
+		//if (recv_len > 0)
+		//{
+		//	ProcessMessage(mySocketBuffer, clientAddressInformation);
+		//}
 
 		timeSinceLastTick += timer.GetDeltaTime();
 
@@ -159,6 +204,36 @@ int Server::Run()
 		{
 			// Sync all clients
 			SyncClients();
+
+			// Check if client is inactive
+			std::vector<int> inactiveClients;
+			for (auto& [id, client] : myConnectedClients)
+			{
+				if (client.timeSinceLastMessage >= 1.5f)
+				{
+					inactiveClients.emplace_back(id);
+				}
+			}
+
+			if (inactiveClients.size() > 0)
+			{
+				std::lock_guard<std::mutex> guard(myClientDataMutex);
+
+				for (unsigned int i = 0; i < inactiveClients.size(); i++)
+				{
+					ClientData& client = myConnectedClients.at(inactiveClients[i]);
+
+					TNP::ServerClientDisconnected msg;
+					msg.id = myPortToID[client.clientPort];
+
+					std::cout << "[SERVER] User '" << client.name << "' has timed out from the server." << std::endl;
+
+					HandleClientDisconnect(client);
+
+					SendMessageToAllClients(msg, sizeof(msg));
+				}
+			}
+
 		}
 
 	}
@@ -175,6 +250,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	inet_ntop(AF_INET, &someInformation.sin_addr, &clientAddress[0], 16);
 	const int clientPort = ntohs(someInformation.sin_port);
 
+
+
 	TNP::MessageType type = DetermineMessageType(aMessage);
 
 	switch (type)
@@ -189,15 +266,21 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		//TNP::ClientJoin message = *(TNP::ClientJoin*)&aMessage;
 
 		const int clientID = CreateID(clientPort);
+		if (clientID < 0)
+		{
+			std::cout << "Recieved duplicate join messages from client [" << message.username << "] , discarding latest...\n";
+			break;
+		}
 
 		ClientData client;
 		client.myServerID = clientID;
 		client.name = message.username;
 		client.sockaddr = someInformation;
+		client.clientPort = clientPort;
 
-		unsigned char red	= (unsigned char)(rand() % 255);
-		unsigned char blue	= (unsigned char)(rand() % 255);
-		unsigned char green	= (unsigned char)(rand() % 255);
+		unsigned char red = (unsigned char)(rand() % 255);
+		unsigned char blue = (unsigned char)(rand() % 255);
+		unsigned char green = (unsigned char)(rand() % 255);
 		unsigned char alpha = 255;
 
 		int color = PackColors(red, blue, green, alpha);
@@ -242,6 +325,9 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 				memcpy(&connectionMessage.clients[index], &conClient.second.color, sizeof(int));
 				index += sizeof(int);
 
+				memcpy(&connectionMessage.clients[index], &conClient.second.position, sizeof(Tga::Vector2f));
+				index += sizeof(Tga::Vector2f);
+
 				char* username = (char*)conClient.second.name.c_str();
 				memcpy(&connectionMessage.clients[index], username, USERNAME_MAX_LENGTH);
 				index += USERNAME_MAX_LENGTH;
@@ -260,8 +346,11 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		TNP::ServerClientDisconnected msg;
 		msg.id = myPortToID[clientPort];
+		ClientData& client = myConnectedClients.at(msg.id);
 
-		HandleClientDisconnect(message, clientPort);
+		std::cout << "[SERVER] User '" << client.name << "' has disconnected from the server." << std::endl;
+
+		HandleClientDisconnect(client);
 
 		SendMessageToAllClients(msg, sizeof(msg));
 
@@ -304,7 +393,12 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		if (true)
 		{
 			// Position is okay, maybe handle it?
-
+			if (myConnectedClients.at(clientID).position != message.position)
+			{
+				ClientPositionUpdateData& data = myUpdateData[clientID];
+				data.PID = clientID;
+				data.newPosition = message.position;
+			}
 			myConnectedClients.at(clientID).position = message.position;
 
 			//std::cout << "Client " << clientID << " position: " <<  message.position.x << ", " << message.position.y << "\n";
@@ -320,6 +414,12 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	}
 	default:
 		std::cout << "Failed to determine message type \n";
+	}
+
+	const int clientID = myPortToID.at(clientPort);
+	if (myConnectedClients.count(clientID) > 0)
+	{
+		myConnectedClients.at(clientID).timeSinceLastMessage = 0.0f;
 	}
 }
 
@@ -370,27 +470,22 @@ int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessag
 void Server::SyncClients()
 {
 	// See if any clients moved since last check
+	std::lock_guard<std::mutex> guard(myClientDataMutex);
 
 	TNP::UpdateClientsMessage message;
 
 	char* ptr = &message.data[0];
 
-	// temp send all clients positions
-	for (auto& [playerID, client] : myConnectedClients)
+	for (auto& [playerID, client] : myUpdateData)
 	{
-		memcpy(ptr, &client.myServerID, sizeof(int));
-		ptr += sizeof(int);
+		memcpy(ptr, &client, sizeof(ClientPositionUpdateData));
 
-		memcpy(ptr, &client.position, sizeof(Tga::Vector2f));
-		ptr += sizeof(Tga::Vector2f);
-
-		//auto& data = message.myData.emplace_back();
-
-		//data.playerID = client.myServerID;
-		//data.position = client.position;
+		ptr += sizeof(ClientPositionUpdateData);
 	}
 
-	message.numberOfClients = (int)myConnectedClients.size();
+	message.numberOfClients = (int)myUpdateData.size();
+
+	myUpdateData.clear();
 
 	SendMessageToAllClients(message, sizeof(message));
 }
@@ -398,6 +493,7 @@ void Server::SyncClients()
 int Server::Shutdown()
 {
 	myInputThread.join();
+	myMessageThread.join();
 	WSACleanup();
 
 	return SERVER_QUIT;
@@ -426,13 +522,9 @@ TNP::MessageType Server::DetermineMessageType(const char* aMessage)
 }
 
 
-void Server::HandleClientDisconnect(TNP::ClientDisconnect& /*aMessage*/, const int aClientPort)
+void Server::HandleClientDisconnect(const ClientData& aClient)
 {
-	ClientData client = myConnectedClients.at(myPortToID[aClientPort]);
-
-	std::cout << "[SERVER] User '" << client.name << "' has disconnected from the server." << std::endl;
-
 	// Remove cached data of client
-	myConnectedClients.erase(client.myServerID);
-	myPortToID.erase(aClientPort);
+	myConnectedClients.erase(aClient.myServerID);
+	myPortToID.erase(aClient.clientPort);
 }

@@ -148,8 +148,9 @@ namespace TNP
 		{
 			int id = -1;
 			int color = 0;
+			Tga::Vector2f position;
 			char username[USERNAME_MAX_LENGTH] = { 0 };
-			// 40 Bytes
+			// 48 Bytes
 		};
 		unsigned int clientID = 9999999;
 		int myColour = 0;

@@ -14,7 +14,7 @@
 #define SERVER_ADDRESS "127.0.0.1"
 #define SERVER_PORT 42000
 
-#define C_FAIL(result) result == C_FAILED
+#define C_FAIL(result) result <= C_FAILED
 
 #define C_FAILED -1
 #define C_CONNECTION_FAILED -2

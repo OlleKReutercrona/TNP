@@ -260,6 +260,12 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		break;
 	case TNP::MessageType::clientJoin:
 	{
+		if (myConnectedClients.size() >= 6)
+		{
+			std::cout << "Server is full.\n";
+			return;
+		}
+
 		TNP::ClientJoin message;
 		message.Deserialize(aMessage);
 

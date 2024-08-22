@@ -7,7 +7,7 @@ project "TNP - UnitTest"
 	kind "ConsoleApp"
 	dependson{"External", "Engine", "TNP - Server", "TNP - Client"}
 
-	links { "External", "Engine"}
+	links { "External", "Engine" }
 
 	files {
 		dirs.unitTest.."**.h",

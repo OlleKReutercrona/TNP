@@ -182,7 +182,7 @@ namespace TNP
 		int numberOfClients = 0;
 		std::vector < ServerConnectedClientData::clientData> myData;
 
-		DeSerServerConnectedClientData Deserialize(ServerConnectedClientData& message)
+		void Deserialize(ServerConnectedClientData& message)
 		{
 			clientID = message.clientID;
 			myColour = message.myColour;

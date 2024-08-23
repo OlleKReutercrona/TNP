@@ -34,8 +34,9 @@ void GameWorld::Init()
 
 	//Tga::Vector2ui resUI = engine.GetRenderSize();
 	
-	
+	myEntityFactory.Init();
 	myPlayerManager.Init();
+
 	myClient.Init(myPlayerManager);
 
 	if (C_FAIL(myClient.Start()))
@@ -60,7 +61,7 @@ void GameWorld::Init()
 		return;
 	}
 
-	myController = new PlayerController(myPlayerManager.GetLocalPlayer());
+	myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
 }
 void GameWorld::Update(float aTimeDelta)
 {
@@ -99,6 +100,7 @@ void GameWorld::Render()
 	// Game update
 	{
 		//myPlayer->Render(spriteDrawer);
+		myEntityFactory.Render(spriteDrawer);
 		myPlayerManager.Render(spriteDrawer);
 	}
 

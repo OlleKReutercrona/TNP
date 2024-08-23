@@ -118,6 +118,15 @@ namespace TNP
 			memcpy(this, msg, sizeof(UpdateClientsMessage));
 		}
 
+		void Serialize(int& anIndex, const int anID, const Tga::Vector2f aVector)
+		{
+			memcpy(&data[anIndex], &anID, sizeof(int));
+			anIndex += sizeof(int);
+
+			memcpy(&data[anIndex], &aVector, sizeof(Tga::Vector2f));
+			anIndex += sizeof(Tga::Vector2f);
+		}
+
 		struct ClientData
 		{
 			int playerID = -1;
@@ -125,8 +134,29 @@ namespace TNP
 		};
 
 		int numberOfClients = -1;
-		char data[MAX_PLAYERS * (sizeof(int) + sizeof(Tga::Vector2f))];
-		//std::vector<ClientData> myData{};
+		char data[MAX_PLAYERS * (sizeof(int) + sizeof(Tga::Vector2f))] = { 0 };
+
+
+		struct UnpackedUpdateClientMessage
+		{
+			UnpackedUpdateClientMessage(UpdateClientsMessage& aMessage)
+			{
+				numberOfClients = aMessage.numberOfClients;
+
+				char* ptr = &aMessage.data[0];
+
+				for (int i = 0; i < numberOfClients; i++)
+				{
+					UpdateClientsMessage::ClientData& client = clients.emplace_back();
+
+					memcpy(&client, ptr, sizeof(UpdateClientsMessage::ClientData));
+					ptr += sizeof(UpdateClientsMessage::ClientData);
+				}
+			}
+
+			int numberOfClients = -1;
+			std::vector<ClientData> clients;
+		};
 	};
 
 
@@ -145,7 +175,7 @@ namespace TNP
 			memcpy(this, msg, sizeof(ServerConnectedClientData));
 		}
 
-		void SerializeData(int index, const int& id, const int& color, const Tga::Vector2f& pos, const std::string& name)
+		void SerializeData(int& index, const int& id, const int& color, const Tga::Vector2f& pos, const std::string& name)
 		{
 			memcpy(&clients[index], &id, sizeof(int));
 			index += sizeof(int);
@@ -161,7 +191,7 @@ namespace TNP
 			index += USERNAME_MAX_LENGTH;
 		}
 
-		struct clientData
+		struct ClientData
 		{
 			int id = -1;
 			int color = 0;
@@ -172,53 +202,55 @@ namespace TNP
 		unsigned int clientID = 9999999;
 		int myColour = 0;
 		int numberOfClients = 0;
-		char clients[MESSAGE_MAX_SIZE] = { 0 };
+		char clients[MAX_PLAYERS * sizeof(ClientData)] = {0};
 		//std::vector<clientData> clients;
-	};
-	struct DeSerServerConnectedClientData
-	{
-		unsigned int clientID = 9999999;
-		int myColour = 0;
-		int numberOfClients = 0;
-		std::vector < ServerConnectedClientData::clientData> myData;
 
-		void Deserialize(ServerConnectedClientData& message)
+		struct UnpackedServerConnectedClientData
 		{
-			clientID = message.clientID;
-			myColour = message.myColour;
-			numberOfClients = message.numberOfClients;
+			unsigned int clientID = 9999999;
+			int myColour = 0;
+			int numberOfClients = 0;
+			std::vector < ServerConnectedClientData::ClientData> myData;
 
-			char* ptr = &message.clients[0];
-			for (int i = 0; i < numberOfClients; i++)
+			void Unpack(ServerConnectedClientData& message)
 			{
-				ServerConnectedClientData::clientData& data = myData.emplace_back();
+				clientID = message.clientID;
+				myColour = message.myColour;
+				numberOfClients = message.numberOfClients;
 
-				// Id
+				char* ptr = &message.clients[0];
+				for (int i = 0; i < numberOfClients; i++)
 				{
-					memcpy(&data.id, ptr, sizeof(int));
-					ptr += sizeof(int);
-				}
+					ServerConnectedClientData::ClientData& data = myData.emplace_back();
 
-				// Color
-				{
-					memcpy(&data.color, ptr, sizeof(int));
-					ptr += sizeof(int);
-				}
+					// Id
+					{
+						memcpy(&data.id, ptr, sizeof(int));
+						ptr += sizeof(int);
+					}
 
-				// Position
-				{
-					memcpy(&data.position, ptr, sizeof(Tga::Vector2f));
-					ptr += sizeof(Tga::Vector2f);
-				}
+					// Color
+					{
+						memcpy(&data.color, ptr, sizeof(int));
+						ptr += sizeof(int);
+					}
 
-				// Username
-				{
-					memcpy(&data.username, ptr, USERNAME_MAX_LENGTH);
-					ptr += USERNAME_MAX_LENGTH;
+					// Position
+					{
+						memcpy(&data.position, ptr, sizeof(Tga::Vector2f));
+						ptr += sizeof(Tga::Vector2f);
+					}
+
+					// Username
+					{
+						memcpy(&data.username, ptr, USERNAME_MAX_LENGTH);
+						ptr += USERNAME_MAX_LENGTH;
+					}
 				}
 			}
-		}
+		};
 	};
+	
 
 
 	/*

@@ -209,7 +209,7 @@ int Server::Run()
 			std::vector<int> inactiveClients;
 			for (auto& [id, client] : myConnectedClients)
 			{
-				if (client.timeSinceLastMessage >= 1.5f)
+				if (client.timeSinceLastMessage >= 2.5f)
 				{
 					inactiveClients.emplace_back(id);
 				}
@@ -480,13 +480,14 @@ void Server::SyncClients()
 
 	TNP::UpdateClientsMessage message;
 
-	char* ptr = &message.data[0];
-
+	//char* ptr = &message.data[0];
+	int index = 0;
 	for (auto& [playerID, client] : myUpdateData)
 	{
-		memcpy(ptr, &client, sizeof(ClientPositionUpdateData));
+		message.Serialize(index, client.PID, client.newPosition);
+		//memcpy(ptr, &client, sizeof(ClientPositionUpdateData));
 
-		ptr += sizeof(ClientPositionUpdateData);
+		//ptr += sizeof(ClientPositionUpdateData);
 	}
 
 	message.numberOfClients = (int)myUpdateData.size();

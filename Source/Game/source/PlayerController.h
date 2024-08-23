@@ -2,10 +2,13 @@
 #include <tge/math/vector2.h>
 
 class Player;
+class EntityFactory;
 
 struct PlayerControllerData
 {
 	Tga::Vector2f inputDirection = { 0,0 };
+	bool useAction = false;
+	bool interactAction = false;
 };
 
 struct InputMapper
@@ -19,7 +22,7 @@ struct InputMapper
 class PlayerController 
 {
 public:
-	PlayerController(Player* aPlayer);
+	PlayerController(Player* aPlayer, EntityFactory& anEntityFactory);
 	~PlayerController();
 
 
@@ -40,4 +43,6 @@ private:
 	InputMapper myInputMapper;
 	Player* myPlayer;
 	HWND myHWND;
+
+	EntityFactory* myEntityFactory;
 };

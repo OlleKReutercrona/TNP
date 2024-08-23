@@ -4,9 +4,9 @@ project "TNP - UnitTest"
 	location(dirs.projectfiles)
 	language "C++"
 	cppdialect "C++17"
-	kind "ConsoleApp"
 	dependson{"External", "Engine", "TNP - Server", "TNP - Client"}
-
+	kind "SharedLib"
+	
 	links { "External", "Engine" }
 
 	files {
@@ -49,7 +49,7 @@ project "TNP - UnitTest"
 		runtime "Release"
 		optimize "on"
 
-	kind "SharedLib"
+
 	filter "system:windows"
 	staticruntime "off"
 	symbols "On"

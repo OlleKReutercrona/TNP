@@ -7,7 +7,6 @@ namespace Tga
 }
 
 class Player;
-
 struct UpdatePlayerData
 {
 	Tga::Vector2f aPosition;

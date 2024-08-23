@@ -142,8 +142,7 @@ int Client::Connect()
 				- Olle
 			*/
 			hasConnected = true;
-			system("cls");
-			std::cout << "Connected to server!" << std::endl;
+			std::cout << "\n\n\nConnected to server!" << std::endl;
 			ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
 			hasMessage = false;
 		}
@@ -432,30 +431,41 @@ int Client::HandleRecievedMessage()
 		// Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
 		// them out to the correct reciever -- Olle
 
-		TNP::UpdateClientsMessage msg;
-		msg.Deserialize(mySocketBuffer);
+		TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)(mySocketBuffer);
 
-		char* ptr = msg.data;
+		TNP::UpdateClientsMessage::UnpackedUpdateClientMessage deserMsg(*msg);
 
-		for (int i = 0; i < msg.numberOfClients; i++)
+		for (int i = 0; i < deserMsg.numberOfClients; i++)
 		{
-
-			unsigned int id = 0;
-			memcpy(&id, ptr, sizeof(unsigned int));
-			ptr += sizeof(unsigned int);
-
-			if (id == (unsigned int)myPlayer->GetPID())
+			if (deserMsg.clients[i].playerID == myPlayer->GetPID())
 			{
-				ptr += sizeof(Tga::Vector2f);
 				continue;
 			}
 
-			Tga::Vector2f pos;
-			memcpy(&pos, ptr, sizeof(Tga::Vector2f));
-			ptr += sizeof(Tga::Vector2f);
-
-			myPlayerManager->UpdatePlayer(id, { pos });
+			myPlayerManager->UpdatePlayer(deserMsg.clients[i].playerID, { deserMsg.clients[i].position });
 		}
+
+		//char* ptr = msg->data;
+
+		//for (int i = 0; i < msg->numberOfClients; i++)
+		//{
+
+		//	unsigned int id = 0;
+		//	memcpy(&id, ptr, sizeof(unsigned int));
+		//	ptr += sizeof(unsigned int);
+
+		//	if (id == (unsigned int)myPlayer->GetPID())
+		//	{
+		//		ptr += sizeof(Tga::Vector2f);
+		//		continue;
+		//	}
+
+		//	Tga::Vector2f pos;
+		//	memcpy(&pos, ptr, sizeof(Tga::Vector2f));
+		//	ptr += sizeof(Tga::Vector2f);
+
+		//	myPlayerManager->UpdatePlayer(id, { pos });
+		//}
 
 
 		break;

@@ -1,11 +1,14 @@
 #pragma once
 #include <tge/math/vector2.h>
 #include <tge/sprite/sprite.h>
-#include <tge/drawers/SpriteDrawer.h>
-#include <tge/drawers/DebugDrawer.h>
 #include <tge/text/text.h>
 #include "PlayerController.h"
 
+namespace Tga
+{
+	class SpriteDrawer;
+	class DebugDrawer;
+}
 
 enum class ePlayerCommands
 {

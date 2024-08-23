@@ -4,7 +4,7 @@
 #define USERNAME_MAX_LENGTH 32
 #define MESSAGE_MAX_SIZE 256
 
-#define MAX_PLAYERS 8
+#define MAX_PLAYERS 6
 
 
 static inline unsigned int PackColors(const unsigned char c1, const unsigned char c2, const unsigned char c3, const unsigned char c4)

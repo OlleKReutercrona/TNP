@@ -3,9 +3,10 @@
 #include "PlayerController.h"
 #include "Player.h"
 #include "Global.h"
+#include "EntityFactory.h"
 
 
-PlayerController::PlayerController(Player* aPlayer)
+PlayerController::PlayerController(Player* aPlayer, EntityFactory& anEntityFactory)
 {
 	myPlayer = aPlayer;
 	if (myPlayer->GetIsPlayerOne())
@@ -22,6 +23,8 @@ PlayerController::PlayerController(Player* aPlayer)
 		myInputMapper.left = 0x25;
 		myInputMapper.right = 0x27;
 	}
+
+	myEntityFactory = &anEntityFactory;
 }
 
 PlayerController::~PlayerController()
@@ -37,6 +40,20 @@ void PlayerController::Update(const float& aDeltaTime)
 
 
 	myPlayer->Update(aDeltaTime, myPlayerControllerData);
+
+	if (myPlayerControllerData.useAction)
+	{
+		myPlayerControllerData.useAction = false;
+
+		myEntityFactory->CreateEntity(EntityType::flower, myPlayer->GetPosition());
+	}
+
+	if (myPlayerControllerData.interactAction)
+	{
+		myPlayerControllerData.useAction = false;
+
+		//myEntityFactory->DeleteEntity(EntityType::flower, );
+	}
 
 }
 
@@ -54,6 +71,16 @@ void PlayerController::UpdateControllerData()
 		myPlayerControllerData.inputDirection += { -1, 0 };
 	if (GetAsyncKeyState(myInputMapper.right))
 		myPlayerControllerData.inputDirection += {  1, 0 };
+
+	if (GetAsyncKeyState('K') & 0x01)
+	{
+		std::cout << "Spawn flower\n";
+		myPlayerControllerData.useAction = true;
+	}
+	if (GetAsyncKeyState('L'))
+	{
+		myPlayerControllerData.interactAction = true;
+	}
 
 	myPlayerControllerData.inputDirection.Normalize();
 }

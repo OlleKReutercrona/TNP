@@ -1,6 +1,6 @@
 #include "CppUnitTest.h"
-//#include <Server/Server.h>
-//#include <Client.h>
+#include <Server/Server.h>
+#include <Client.h>
 //#include <../Game/source/Client.h>
 //#include "Client.h"
 //#include "Server.h"
@@ -13,124 +13,216 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-struct ClientData
+//struct ClientData
+//{
+//	int clientPort = -1;
+//	unsigned int myServerID = 9999999;
+//	std::string name = "";
+//	//std::string connectionIP;
+//	//sockaddr_in sockaddr;
+//	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer = {};
+//
+//	float timeSinceLastMessage = 0.0f;
+//
+//	// Game Specific Data
+//	Tga::Vector2f position = {};
+//	int color = 0;
+//};
+//
+//struct ClientPositionUpdateData
+//{
+//	int PID = 0;
+//	Tga::Vector2f newPosition = {};
+//};
+
+void CreateClients(std::unordered_map<int, ClientData>& aMap, const int aNumberOfClients)
 {
-	int clientPort = -1;
-	unsigned int myServerID = 9999999;
-	std::string name = "";
-	//std::string connectionIP;
-	//sockaddr_in sockaddr;
-	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer = {};
+	for (int i = 0; i < aNumberOfClients; i++)
+	{
+		std::string name("Client_");
+		name += std::to_string(i);
 
-	float timeSinceLastMessage = 0.0f;
+		ClientData client;
+		client.myServerID = i;
+		client.name = name;
 
-	// Game Specific Data
-	Tga::Vector2f position = {};
-	int color = 0;
-};
+		unsigned char red = (unsigned char)(rand() % 255);
+		unsigned char blue = (unsigned char)(rand() % 255);
+		unsigned char green = (unsigned char)(rand() % 255);
+		unsigned char alpha = 255;
 
-struct ClientPositionUpdateData
+		int color = PackColors(red, blue, green, alpha);
+
+		client.color = color;
+		client.position = {
+			(float)(rand() % 400),
+			(float)(rand() % 400)
+		};
+
+		aMap[client.myServerID] = client;
+	}
+}
+
+
+TNP::MessageType DetermineMessageType(const char* aMessage)
 {
-	int PID = 0;
-	Tga::Vector2f newPosition = {};
-};
+	return *(TNP::MessageType*)&aMessage[0];
+}
 
 namespace TNP_UT
 {
-	TEST_CLASS(MESSSAGE_TEST) 
+	TEST_CLASS(MESSSAGE_TEST)
 	{
-public:
+	public:
 
-	TEST_METHOD(MESSAGE_CLIENT_JOINED) 
-	{
-		//Client* client = new Client();
-		//Server* server = new Server();
-
-		//TNP::ClientJoin message;
-		//std::string userName = "Olle";
-
-
-		//strcpy_s(message.username, USERNAME_MAX_LENGTH, userName.c_str());
-
-		////const char* msg = (char*)&message;
-
-		//std::string clientname = server->UT_ProcessMessageClientJoin((char*)&message);
-		//Assert::AreEqual(userName, clientname);
-		//Assert::AreEqual((std::string)"Olle", userName);
-
-
-	}
-	TEST_METHOD(MESSAGE_NEW_CLIENT_CONNECTED)
-	{
-		std::unordered_map<int, ClientData> myConnectedClients = {};
-
-		int numberOfClients = 3;
-
-		for (int i = 0; i < numberOfClients; i++)
+		TEST_METHOD(CLIENT_TO_SERVER_CLIENT_JOINED)
 		{
-			//std::string name("Client_");
-			//name += i;
 
-			ClientData client;
-			client.myServerID = i;
-			//client.name = name;
+			//TNP::ClientJoin message;
+			//std::string userName = "Olle";
 
-			unsigned char red = (unsigned char)(rand() % 255);
-			unsigned char blue = (unsigned char)(rand() % 255);
-			unsigned char green = (unsigned char)(rand() % 255);
-			unsigned char alpha = 255;
 
-			int color = PackColors(red, blue, green, alpha);
+			//strcpy_s(message.username, USERNAME_MAX_LENGTH, userName.c_str());
 
-			client.color = color;
-			client.position = {
-				(float)(rand() % 400),
-				(float)(rand() % 400 )
-			};
+			////const char* msg = (char*)&message;
 
-			myConnectedClients[client.myServerID] = client;
+			//std::string clientname = server->UT_ProcessMessageClientJoin((char*)&message);
+			//Assert::AreEqual(userName, clientname);
+			//Assert::AreEqual((std::string)"Olle", userName);
+
+
+			std::string controlStr = "xX_DragonSlayer94_Xx";
+
+			TNP::ClientJoin message;
+			strcpy_s(message.username, USERNAME_MAX_LENGTH, controlStr.c_str());
+
+			const char* msg = (char*)&message;
+
+			// SEND MESSGE ->>>>>>>>>>>>>
+
+
+			// RECEIVE MESSAGE <<<<<<<<<<<<<<<<-
+
+			TNP::ClientJoin clientMsg;
+			clientMsg.Deserialize(msg);
+
+			Assert::AreEqual(controlStr.c_str(), clientMsg.username);
+		}
+		TEST_METHOD(MESSAGE_NEW_CLIENT_CONNECTED)
+		{
+			std::unordered_map<int, ClientData> myConnectedClients = {};
+
+			int numberOfClients = 3;
+
+			CreateClients(myConnectedClients, numberOfClients);
+
+			char* msg = nullptr;
+			{
+				TNP::ServerConnectedClientData serverMsg;
+
+				serverMsg.clientID = myConnectedClients.at((int)myConnectedClients.size() - 1).myServerID;; // <- Receiving clients id
+				serverMsg.myColour = myConnectedClients.at((int)myConnectedClients.size() - 1).color;
+				serverMsg.numberOfClients = (int)myConnectedClients.size() - 1;
+
+				int index = 0;
+				for (auto& [id, client] : myConnectedClients)
+				{
+					if (id == numberOfClients - 1) continue;
+
+					serverMsg.SerializeData(index, client.myServerID, client.color, client.position, client.name);
+				}
+
+				msg = (char*)&serverMsg;
+			}
+			// SEND MESSAGE ->>>>>>>>>>>>>
+
+
+
+			// Unpack message <<<<<<<<<<<<<-
+
+			TNP::MessageType type = DetermineMessageType(msg);
+
+			Assert::AreEqual((int)TNP::MessageType::serverConnectedClientData, (int)type);
+
+			TNP::ServerConnectedClientData* recMsg = (TNP::ServerConnectedClientData*)msg;
+
+			TNP::ServerConnectedClientData::UnpackedServerConnectedClientData deSerMessage;
+
+			deSerMessage.Unpack(*recMsg);
+
+			ClientData& client = myConnectedClients.at(2);
+
+			Assert::AreEqual(client.myServerID, (int)deSerMessage.clientID);
+			Assert::AreEqual(client.color, deSerMessage.myColour);
+			Assert::AreEqual(numberOfClients - 1, deSerMessage.numberOfClients);
+
+			for (unsigned int i = 0; i < deSerMessage.myData.size(); i++)
+			{
+				TNP::ServerConnectedClientData::ClientData& data = deSerMessage.myData[i];
+				Assert::IsFalse(myConnectedClients.count(data.id) == 0);
+
+				ClientData& cData = myConnectedClients.at(data.id);
+
+				Assert::AreEqual((int)cData.myServerID, data.id);
+				Assert::AreEqual(cData.color, data.color);
+				Assert::AreEqual(cData.position.x, data.position.x);
+				Assert::AreEqual(cData.position.y, data.position.y);
+				Assert::AreEqual(cData.name.c_str(), data.username);
+			}
+
 		}
 
 
-		TNP::ServerConnectedClientData message;
-		int index = 0;
-		for (auto& [id, client] : myConnectedClients)
+		TEST_METHOD(SERVER_TO_CLIENT_UPDATE_CLIENT_MESSAGE)
 		{
-			if (id == numberOfClients - 1) continue;
+			std::unordered_map<int, ClientData> myConnectedClients = {};
 
-			message.SerializeData(index, client.myServerID, client.color, client.position, client.name);
+			int numberOfClients = 3;
+
+			char* msg = nullptr;
+
+			CreateClients(myConnectedClients, numberOfClients);
+
+			{
+
+				TNP::UpdateClientsMessage message;
+
+				message.numberOfClients = (int)myConnectedClients.size();
+
+				int index = 0;
+
+				for (auto& [id, client] : myConnectedClients)
+				{
+					message.Serialize(index, client.myServerID, client.position);
+				}
+
+				msg = (char*)&message;
+			}
+
+			// SEND MESSSAGE ->>>>>>>>>>>>>>>>>
+
+
+
+			// RECEIVED MESSSAGE <<<<<<<<<<<<<<<<-
+
+			TNP::MessageType type = DetermineMessageType(msg);
+
+			Assert::AreEqual((int)TNP::MessageType::updateClients, (int)type);
+
+			TNP::UpdateClientsMessage* recMsg = (TNP::UpdateClientsMessage*)msg;
+
+			TNP::UpdateClientsMessage::UnpackedUpdateClientMessage deSerMessage(*recMsg);
+
+			for (int i = 0; i < deSerMessage.numberOfClients; i++)
+			{
+				TNP::UpdateClientsMessage::ClientData& client = deSerMessage.clients[i];
+				ClientData& serverClient = myConnectedClients.at(client.playerID);
+
+
+				Assert::AreEqual(client.playerID, serverClient.myServerID);
+				Assert::AreEqual(client.position.x, serverClient.position.x);
+				Assert::AreEqual(client.position.y, serverClient.position.y);
+			}
 		}
-		// SEND MESSAGE ->>>>>>>>>>>>>
-
-
-
-		// Unpack message <<<<<<<<<<<<<-
-
-		TNP::DeSerServerConnectedClientData deSerMessage;
-
-		deSerMessage.Deserialize(message);
-
-		ClientData client = myConnectedClients.at(2);
-
-		Assert::AreEqual(deSerMessage.clientID, client.myServerID);
-		Assert::AreEqual(deSerMessage.myColour, client.color);
-		Assert::AreEqual(deSerMessage.numberOfClients, message.numberOfClients);
-
-		for (unsigned int i = 0; i < deSerMessage.myData.size(); i++)
-		{
-			TNP::ServerConnectedClientData::clientData& data = deSerMessage.myData[i];
-			Assert::IsFalse(myConnectedClients.count(data.id) == 0);
-
-			ClientData& cData = myConnectedClients.at(data.id);
-
-			Assert::AreEqual(data.id, (int)cData.myServerID);
-			Assert::AreEqual(data.color, cData.color);
-			Assert::AreEqual(data.position.x, cData.position.x);
-			Assert::AreEqual(data.position.y, cData.position.y);
-			Assert::AreEqual(data.username, cData.name.c_str());
-		}
-
-	}
-
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Client.h"
 #include "PlayerManager.h"
+#include "EntityFactory.h"
 
 class PlayerController;
 class Player;
@@ -26,8 +27,9 @@ public:
 
 private:
 	
-
+	EntityFactory myEntityFactory;
 	PlayerManager myPlayerManager;
+
 	Player* myPlayer;
 	PlayerController* myController;
 	Client myClient;

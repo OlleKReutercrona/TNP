@@ -1,39 +1,14 @@
 #include "CppUnitTest.h"
 #include <Server/Server.h>
 #include <Client.h>
-//#include <../Game/source/Client.h>
-//#include "Client.h"
-//#include "Server.h"
 #include "Message.h"
 #include <CircularBuffer.h>
 
 #include <unordered_map>
-//#include <WinSock2.h>
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-//struct ClientData
-//{
-//	int clientPort = -1;
-//	unsigned int myServerID = 9999999;
-//	std::string name = "";
-//	//std::string connectionIP;
-//	//sockaddr_in sockaddr;
-//	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer = {};
-//
-//	float timeSinceLastMessage = 0.0f;
-//
-//	// Game Specific Data
-//	Tga::Vector2f position = {};
-//	int color = 0;
-//};
-//
-//struct ClientPositionUpdateData
-//{
-//	int PID = 0;
-//	Tga::Vector2f newPosition = {};
-//};
 
 void CreateClients(std::unordered_map<int, ClientData>& aMap, const int aNumberOfClients)
 {

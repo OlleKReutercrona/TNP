@@ -71,6 +71,7 @@ public:
 	int Shutdown();
 
 	int SendPositionMessage();
+	int SendFlowerSpawnMessage();
 
 	const inline bool IsConnected()
 	{

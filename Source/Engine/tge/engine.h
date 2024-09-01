@@ -90,6 +90,7 @@ namespace Tga
             myActivateDebugSystems			= DebugFeature::Fps | DebugFeature::Mem;
 			myPreferedMultiSamplingQuality	= MultiSamplingQuality::Off;
 			myClearColor					= TGA_DEFAULT_CRYSTAL_BLUE;
+            myWindowPosition                = { CW_USEDEFAULT , CW_USEDEFAULT };
         }
 
 		callback_function_wndProc myWinProcCallback;
@@ -104,6 +105,9 @@ namespace Tga
 
 		/* In what resolution are the graphic artist working?*/
         Vector2ui myTargetSize;
+
+        /* Where on the screen the window is */
+        Vector2i myWindowPosition;
 
         /* Will show the FPS and memory text*/
         DebugFeature myActivateDebugSystems;

@@ -187,6 +187,7 @@ namespace TNP
 
 
 	/*
+		@
 		This message is sent to a client that just joined to server to get information about all other clients that are currently connected.
 		Contains the data of all currently connected clients
 	*/

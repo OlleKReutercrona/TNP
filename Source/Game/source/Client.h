@@ -16,8 +16,10 @@
 
 #define C_FAIL(result) result <= C_FAILED
 
-#define C_FAILED -1
+#define C_UNAME_TOO_LONG -3
 #define C_CONNECTION_FAILED -2
+#define C_FAILED -1
+#define C_CONNECTING 3
 #define C_SUCCESS 1
 #define C_QUIT 2
 
@@ -30,6 +32,7 @@ namespace TNP
 {
 	struct Message;
 }
+
 
 // This is jank and should maybe be taken care of by server but probably not
 struct MessageCounter
@@ -58,6 +61,7 @@ public:
 
 	int Start();
 	int Connect();
+	int Connect(const std::string& aUsername);
 
 	int StartInputThread();
 	int Run();
@@ -78,8 +82,12 @@ public:
 
 	void StorePlayerCommands(std::vector<ePlayerCommands> someCommands);
 
+	const inline bool IsConnected()
+	{
+		return isConnected;
+	}
 
-	const inline bool GetHasJoined()
+	const inline bool HasJoined()
 	{
 		return hasJoined;
 	}
@@ -115,5 +123,6 @@ private:
 	
 
 	bool hasJoined = false;
+	bool isConnected = false;
 
 };

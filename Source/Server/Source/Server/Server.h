@@ -11,18 +11,18 @@
 
 struct ClientData
 {
-	int clientPort;
-	int myServerID;
-	std::string name;
+	int clientPort = 0;
+	int myServerID = 0;
+	std::string name = "";
 	//std::string connectionIP;
-	sockaddr_in sockaddr;
-	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer;
+	sockaddr_in sockaddr = {};
+	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer = {};
 
 	float timeSinceLastMessage = 0.0f;
 
 	// Game Specific Data
-	Tga::Vector2f position;
-	int color;
+	Tga::Vector2f position = {};
+	int color = 0;
 };
 
 struct ClientPositionUpdateData
@@ -104,4 +104,6 @@ private:
 	WSADATA myWinSockData = {};
 
 	sockaddr_in myBindAddressInformation = {};
+
+	const float myClientDisconnectTime = 1.0f;
 };

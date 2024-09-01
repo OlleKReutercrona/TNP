@@ -209,7 +209,7 @@ int Server::Run()
 			std::vector<int> inactiveClients;
 			for (auto& [id, client] : myConnectedClients)
 			{
-				if (client.timeSinceLastMessage >= 2.5f)
+				if (client.timeSinceLastMessage >= myClientDisconnectTime)
 				{
 					inactiveClients.emplace_back(id);
 				}
@@ -396,7 +396,7 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		const int clientID = myPortToID.at(clientPort);
 
 		// Verify that client position is okay
-		if (true)
+		if (myConnectedClients.count(clientID) > 0)
 		{
 			// Position is okay, maybe handle it?
 			if (myConnectedClients.at(clientID).position != message.position)

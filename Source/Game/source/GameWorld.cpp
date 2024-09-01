@@ -5,14 +5,15 @@
 #include <tge/drawers/SpriteDrawer.h>
 #include <tge/texture/TextureManager.h>
 #include <tge/drawers/DebugDrawer.h>
-
 #include <tge/text/text.h>
+#include <tge/input/InputManager.h>
 
 #include "Player.h"
 #include "PlayerController.h"
 
 #include <chrono>
 #include <thread>
+
 
 GameWorld::GameWorld()
 {
@@ -28,12 +29,11 @@ GameWorld::~GameWorld()
 	myRecieveMessageThread.join();
 }
 
-void GameWorld::Init()
+void GameWorld::Init(Tga::InputManager& aInputManager)
 {
-	//auto& engine = *Tga::Engine::GetInstance();
+	myInputManager = &aInputManager;
 
-	//Tga::Vector2ui resUI = engine.GetRenderSize();
-	
+
 	myEntityFactory.Init();
 	myPlayerManager.Init();
 
@@ -47,26 +47,47 @@ void GameWorld::Init()
 	std::cout << "Client trying to connect..." << std::endl;
 
 
+	// Text Init
+	{
+		myDisplayText = new Tga::Text(L"Text/arial.ttf", Tga::FontSize_36);
+		myInputText = new Tga::Text(L"Text/arial.ttf", Tga::FontSize_24);
+
+		Tga::Engine& engine = *Tga::Engine::GetInstance();
+		Tga::Vector2ui uiRes = engine.GetRenderSize();
+		myResolution = { (float)uiRes.x, (float)uiRes.y };
+
+
+		myDisplayText->SetText("Please enter a username:");
+		myDisplayText->SetPosition({ myResolution.x * 0.5f - myDisplayText->GetWidth() / 2.0f, myResolution.y * 0.7f - myDisplayText->GetHeight() / 2.0f});
+		
+		myInputText->SetText("");
+		myInputText->SetPosition({ myResolution.x * 0.5f, myResolution.y * 0.5f });
+	}
+
+
+
 	//Message Recieve Thread
 
 
 
-	StartRecieveMessageThread();
 
-	if (C_FAIL(myClient.Connect()))
-	{
-		std::cout << "CONNECT FAILED" << std::endl;
-		isRunning = false;
-		PostQuitMessage(0);
-		return;
-	}
+	//if (C_FAIL(myClient.Connect()))
+	//{
+	//	std::cout << "CONNECT FAILED" << std::endl;
+	//	isRunning = false;
+	//	PostQuitMessage(0);
+	//	return;
+	//}
 
-	myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
+	//myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
 }
+
 void GameWorld::Update(float aTimeDelta)
 {
-
-
+	if (ConnectClient(aTimeDelta) == false)
+	{
+		return;
+	}
 
 	//if (!myClient.GetHasJoined())
 	//{
@@ -93,6 +114,93 @@ void GameWorld::Update(float aTimeDelta)
 
 }
 
+bool GameWorld::ConnectClient(const float aTimeDelta)
+{
+	if (myClient.HasJoined()) { return true;  }
+
+
+	static bool connecting = false;
+
+	if (connecting == false)
+	{
+		std::string input = myInputManager->GetPressedKeys();
+
+		if (myInputManager->IsKeyPressed(VK_BACK) && myUserName.size() > 0)
+		{
+			myUserName.erase(myUserName.end() - 1);
+		}
+		myUserName += input;
+		std::cout << input;
+
+		if (myInputManager->IsKeyPressed(VK_RETURN))
+		{
+			connecting = true;
+		}
+
+		myInputText->SetText(myUserName);
+		myInputText->SetPosition({ myResolution.x * 0.5f - myInputText->GetWidth() / 2.0f, myResolution.y * 0.5f - myInputText->GetHeight() / 2.0f });
+	}
+
+	if (connecting)
+	{
+		myClient.RecieveMessageFromServer();
+
+
+		constexpr float waitTime = 0.5f;
+		static float myTime = waitTime;
+
+		if (myTime < waitTime)
+		{
+			myTime += aTimeDelta;
+			return false;
+		}
+
+		myTime = 0.0f;
+
+		int result = myClient.Connect(myUserName);
+		switch (result)
+		{
+		case C_FAILED: {
+			std::cout << "CONNECT FAILED" << std::endl;
+			isRunning = false;
+			PostQuitMessage(0);
+			return false;
+		}
+		case C_CONNECTION_FAILED: {
+			std::cout << "CONNECT FAILED" << std::endl;
+			isRunning = false;
+			PostQuitMessage(0);
+			return false;
+		}
+		case C_SUCCESS: {
+			std::cout << "Connected to server!\n\n";
+
+
+			myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
+
+			StartRecieveMessageThread();
+			return true;
+		}
+		case C_QUIT: {
+			std::cout << "Quiting...\n";
+			return false;
+		}
+		case C_UNAME_TOO_LONG: {
+			std::cout << "Username too long\n";
+			connecting = false;
+			myTime = waitTime;
+			return false;
+		}
+		case C_CONNECTING: {
+			std::cout << "Connecting...\n";
+			return false;
+		}
+		}
+	}
+
+	return false;
+}
+
 void GameWorld::Render()
 {
 	auto& engine = *Tga::Engine::GetInstance();
@@ -102,6 +210,12 @@ void GameWorld::Render()
 		//myPlayer->Render(spriteDrawer);
 		myEntityFactory.Render(spriteDrawer);
 		myPlayerManager.Render(spriteDrawer);
+
+		if (myClient.HasJoined() == false)
+		{
+			myInputText->Render();
+			myDisplayText->Render();
+		}
 	}
 
 	if (!_RENDERDEBUG)
@@ -132,14 +246,14 @@ void GameWorld::StartRecieveMessageThread()
 				// Todo -> check our own time.
 				timeSinceLastTick += Tga::Engine::GetInstance()->GetDeltaTime();
 
-				if (!myClient.GetHasJoined())
+				if (!myClient.HasJoined())
 					continue;
-			
+
 				// Return if 
 				if (timeSinceLastTick < tickTimeStep) { continue; }
 
 				timeSinceLastTick = 0.0f;
-	
+
 				// Handle messages to send
 				{
 					// Send Client position

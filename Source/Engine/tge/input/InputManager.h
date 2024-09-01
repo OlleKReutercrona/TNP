@@ -50,6 +50,8 @@ public:
 	Vector2f GetMouseDelta() const;
 	Vector2f GetMousePosition() const;
 
+	const std::string GetPressedKeys() const;
+
 	void ShowMouse() const;
 	void HideMouse() const;
 

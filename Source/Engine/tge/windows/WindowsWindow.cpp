@@ -16,7 +16,7 @@ WindowsWindow::~WindowsWindow(void)
 {
 }
 
-bool WindowsWindow::Init(const EngineConfiguration &aWindowConfig, HINSTANCE &aHInstanceToFill, HWND*& aHwnd)
+bool WindowsWindow::Init(const EngineConfiguration &aWindowConfig, HINSTANCE &aHInstanceToFill, HWND*& aHwnd, const Tga::Vector2i aWindowPos)
 {
 	myWndProcCallback = aWindowConfig.myWinProcCallback;
 	HINSTANCE instance = GetModuleHandle(NULL);
@@ -58,8 +58,8 @@ bool WindowsWindow::Init(const EngineConfiguration &aWindowConfig, HINSTANCE &aH
 			L"WindowClass1",    // name of the window class
 			aWindowConfig.myApplicationName.c_str(),    // title of the window
 			windowStyle,    // window style
-			CW_USEDEFAULT,    // x-position of the window
-			CW_USEDEFAULT,    // y-position of the window
+			aWindowPos.x,    // x-position of the window
+			aWindowPos.y,    // y-position of the window
 			wr.right - wr.left,    // width of the window
 			wr.bottom - wr.top,    // height of the window
 			NULL,    // we have no parent window, NULL

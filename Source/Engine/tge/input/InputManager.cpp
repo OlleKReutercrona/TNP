@@ -32,6 +32,46 @@ InputManager::InputManager(HWND aWindowHandle)
 	myMouseWheelDelta = 0;
 }
 
+const std::string Tga::InputManager::GetPressedKeys() const
+{
+	std::string pressedKeys = "";
+
+	if (myCurrentState[32] && !myPreviousState[32])
+	{
+		pressedKeys += (char)32;
+	}
+
+	// Numbers
+	for (unsigned int i = 48; i < 58; i++)
+	{
+		if (myCurrentState[i] && !myPreviousState[i])
+		{
+			pressedKeys += (char)i;
+		}
+	}
+
+
+	// Captial Letters
+	for (unsigned int i = 65; i < 91; i++)
+	{
+		if (myCurrentState[i] && !myPreviousState[i])
+		{
+			pressedKeys += (char)i;
+		}
+	}
+
+	// Lower case letters
+	for (unsigned int i = 97; i < 123; i++)
+	{
+		if (myCurrentState[i] && !myPreviousState[i])
+		{
+			pressedKeys += (char)i;
+		}
+	}
+
+	return pressedKeys.c_str();
+}
+
 bool InputManager::IsKeyHeld(const int aKeyCode) const
 {
 	return myCurrentState[aKeyCode] && myPreviousState[aKeyCode];

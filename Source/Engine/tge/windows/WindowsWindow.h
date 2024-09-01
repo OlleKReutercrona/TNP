@@ -16,7 +16,7 @@ namespace Tga
 	public:
 		WindowsWindow(void);
 		~WindowsWindow(void);
-		bool Init(const EngineConfiguration& aWndCfg, HINSTANCE& aHInstanceToFill, HWND*& aHwnd);
+		bool Init(const EngineConfiguration& aWndCfg, HINSTANCE& aHInstanceToFill, HWND*& aHwnd, const Tga::Vector2i aWindowPos = { CW_USEDEFAULT , CW_USEDEFAULT });
 		HWND GetWindowHandle() const {return myWindowHandle;}
 		void SetResolution(Vector2ui aResolution);
 		void Close();

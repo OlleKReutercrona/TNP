@@ -106,7 +106,7 @@ int Client::Connect()
 			std::this_thread::sleep_for(std::chrono::milliseconds(333));
 
 			unsigned int counter = 0;
-			const unsigned int maxCount = 10;
+			const unsigned int maxCount = 20;
 
 			while (hasConnected == false)
 			{
@@ -123,7 +123,7 @@ int Client::Connect()
 					break;
 				}
 
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 				std::cout << "Failed to connect to server, retrying...\n";
 
@@ -153,6 +153,41 @@ int Client::Connect()
 		}
 	}
 	return C_SUCCESS;
+}
+
+int Client::Connect(const std::string& aUsername)
+{
+	if (isConnected)
+	{
+		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
+
+		hasJoined = true;
+		return C_SUCCESS;
+	}
+
+
+	if (aUsername.size() <= USERNAME_MAX_LENGTH)
+	{
+		TNP::ClientJoin message;
+		//message.username = { 0 };
+
+		strcpy_s(message.username, USERNAME_MAX_LENGTH, aUsername.c_str());
+
+		myClientName = aUsername;
+
+		if (C_FAIL(SendClientMessage(message, sizeof(message))))
+		{
+			return C_CONNECTION_FAILED;
+		}
+
+		return C_CONNECTING;
+	}
+	else
+	{
+		std::cout << "\nUsername to long. (It has to be under 32 characters)" << std::endl;
+		hasMessage = false;
+		return C_UNAME_TOO_LONG;
+	}
 }
 
 int Client::Run()
@@ -252,6 +287,9 @@ int Client::Shutdown()
 
 int Client::SendPositionMessage()
 {
+	if (myPlayer == nullptr) return 0;
+
+
 	TNP::ClientMovedMessage message;
 
 	message.playerID = myPlayer->GetPID();
@@ -336,7 +374,7 @@ int Client::HandleRecievedMessage()
 
 
 		// flag game that connection was successful 
-		hasJoined = true;
+		isConnected = true;
 
 
 		// Local Player init

@@ -47,6 +47,7 @@ Engine::Engine( const EngineConfiguration& aWindowConfiguration)
 
 		myWindowConfiguration.myEnableVSync = param.myEnableVSync;
 		myWindowConfiguration.myActivateDebugSystems = param.myActivateDebugSystems;
+		myWindowConfiguration.myWindowPosition = aWindowConfiguration.myWindowPosition;
 		//myWindowConfiguration = param;
 
 		{
@@ -131,7 +132,7 @@ bool Engine::InternalStart()
 	INFO_PRINT("%s", "---TGA 2D Starting, dream big and dare to fail---");
 	myFileWatcher = std::make_unique<FileWatcher>();
 	myWindow = std::make_unique<WindowsWindow>();
-	if (!myWindow->Init(myWindowConfiguration, myWindowConfiguration.myHInstance, myWindowConfiguration.myHwnd)) 
+	if (!myWindow->Init(myWindowConfiguration, myWindowConfiguration.myHInstance, myWindowConfiguration.myHwnd, myWindowConfiguration.myWindowPosition)) 
 	{
 		ERROR_PRINT("%s", "Window failed to be created!");
 		return false;

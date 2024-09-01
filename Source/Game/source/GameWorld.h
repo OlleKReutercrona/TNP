@@ -13,14 +13,22 @@ struct MessageThreadData
 {
 };
 
+namespace Tga
+{
+	class InputManager;
+	class Text;
+}
+
 class GameWorld
 {
 public:
 	GameWorld(); 
 	~GameWorld();
 
-	void Init();
-	void Update(float aTimeDelta); 
+	void Init(Tga::InputManager& aInputManager);
+	void Update(float aTimeDelta);
+	bool ConnectClient(float aTimeDelta);
+
 	void Render();
 
 	void StartRecieveMessageThread();
@@ -30,8 +38,9 @@ private:
 	EntityFactory myEntityFactory;
 	PlayerManager myPlayerManager;
 
-	Player* myPlayer;
-	PlayerController* myController;
+	std::string myUserName = "";
+	Player* myPlayer = nullptr;
+	PlayerController* myController = nullptr;
 	Client myClient;
 
 	MessageThreadData myMessageThreadData;
@@ -40,5 +49,10 @@ private:
 	std::thread myRecieveMessageThread;
 
 	bool isRunning = true;
+	Tga::InputManager* myInputManager;
 
+	Tga::Text* myDisplayText;
+	Tga::Text* myInputText;
+
+	Tga::Vector2f myResolution;
 };

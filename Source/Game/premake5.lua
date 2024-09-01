@@ -19,6 +19,7 @@ include "../../Premake/common.lua"
 	include (dirs.engine)
 	include (dirs.shared)
 	include (dirs.unitTest)
+	include (dirs.launcher)
 	
 	
 

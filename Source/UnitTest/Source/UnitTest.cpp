@@ -77,37 +77,82 @@ namespace TNP_UT
 
 		TEST_METHOD(CLIENT_TO_SERVER_CLIENT_JOINED)
 		{
+			std::string username = "xX_DragonSlayer94_Xx";
 
-			//TNP::ClientJoin message;
-			//std::string userName = "Olle";
+			TNP::ClientJoin serializeMessage;
+			strcpy_s(serializeMessage.username, USERNAME_MAX_LENGTH, username.c_str());
 
-
-			//strcpy_s(message.username, USERNAME_MAX_LENGTH, userName.c_str());
-
-			////const char* msg = (char*)&message;
-
-			//std::string clientname = server->UT_ProcessMessageClientJoin((char*)&message);
-			//Assert::AreEqual(userName, clientname);
-			//Assert::AreEqual((std::string)"Olle", userName);
-
-
-			std::string controlStr = "xX_DragonSlayer94_Xx";
+			const char* msg = (char*)&serializeMessage;
 
 			TNP::ClientJoin message;
-			strcpy_s(message.username, USERNAME_MAX_LENGTH, controlStr.c_str());
+			message.Deserialize(msg);
 
-			const char* msg = (char*)&message;
+			Assert::AreEqual((int)TNP::MessageType::clientJoin, (int)message.type);
 
-			// SEND MESSGE ->>>>>>>>>>>>>
-
-
-			// RECEIVE MESSAGE <<<<<<<<<<<<<<<<-
-
-			TNP::ClientJoin clientMsg;
-			clientMsg.Deserialize(msg);
-
-			Assert::AreEqual(controlStr.c_str(), clientMsg.username);
+			Assert::AreEqual(serializeMessage.username, message.username);
 		}
+
+		TEST_METHOD(CLIENT_TO_SERVER_CLIENT_MOVED)
+		{
+			Tga::Vector2f newPosition = { 10.f, 5.f };
+			int playerIDToMove = 2;
+
+			TNP::ClientMovedMessage serializeMessage;
+			serializeMessage.playerID = playerIDToMove;
+			serializeMessage.position = newPosition;
+
+			const char* msg = (char*)&serializeMessage;
+
+			TNP::ClientMovedMessage message;
+			message.Deserialize(msg);
+
+			Assert::AreEqual((int)TNP::MessageType::clientSendPosition, (int)message.type);
+
+			Assert::AreEqual(serializeMessage.playerID, message.playerID);
+			Assert::AreEqual(serializeMessage.position.x, message.position.x);
+			Assert::AreEqual(serializeMessage.position.y, message.position.y);
+		}
+
+		TEST_METHOD(SERVER_TO_CLIENTS_NEW_CLIENT_JOINED)
+		{
+			int idOfNewClient = 5;
+			int colorOfNewClient = 5;
+			std::string usernameOfNewClient = "xX_DragonSlayer94_Xx";
+
+			TNP::ServerClientJoined serializeMessage;
+			serializeMessage.id = idOfNewClient;
+			serializeMessage.color = colorOfNewClient;
+			strcpy_s(serializeMessage.username, USERNAME_MAX_LENGTH, usernameOfNewClient.c_str());
+
+			const char* msg = (char*)&serializeMessage;
+
+			TNP::ServerClientJoined message;
+			message.Deserialize(msg);
+
+			Assert::AreEqual((int)TNP::MessageType::serverClientJoined, (int)message.type);
+
+			Assert::AreEqual(serializeMessage.id, message.id);
+			Assert::AreEqual(serializeMessage.color, message.color);
+			Assert::AreEqual(serializeMessage.username, message.username);
+		}
+
+		TEST_METHOD(SERVER_TO_CLIENTS_CLIENT_DISCONNECTED)
+		{
+			int idOfDisconnectedClient = 5;
+
+			TNP::ServerClientDisconnected serializeMessage;
+			serializeMessage.id = idOfDisconnectedClient;
+
+			const char* msg = (char*)&serializeMessage;
+
+			TNP::ServerClientDisconnected message;
+			message.Deserialize(msg);
+
+			Assert::AreEqual((int)TNP::MessageType::serverClientDisconnected, (int)message.type);
+
+			Assert::AreEqual(serializeMessage.id, message.id);
+		}
+
 		TEST_METHOD(MESSAGE_NEW_CLIENT_CONNECTED)
 		{
 			std::unordered_map<int, ClientData> myConnectedClients = {};

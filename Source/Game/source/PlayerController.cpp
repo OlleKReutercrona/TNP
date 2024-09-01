@@ -44,8 +44,8 @@ void PlayerController::Update(const float& aDeltaTime)
 	if (myPlayerControllerData.useAction)
 	{
 		myPlayerControllerData.useAction = false;
-
-		myEntityFactory->CreateEntity(EntityType::flower, myPlayer->GetPosition());
+		myPlayer->StoreCommand(ePlayerCommands::SpawnFlower);
+		//myEntityFactory->CreateEntity(EntityType::flower, myPlayer->GetPosition());
 	}
 
 	if (myPlayerControllerData.interactAction)

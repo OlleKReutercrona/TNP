@@ -5,6 +5,7 @@
 #include "Message.h"
 #include "Player.h"
 #include "PlayerManager.h"
+#include "EntityFactory.h"
 // Allows us to gracefully exit the program loop.
 std::atomic<bool> isRunning = true;
 std::atomic<bool> hasMessage = false;
@@ -14,9 +15,10 @@ Client::~Client()
 	Shutdown();
 }
 
-void Client::Init(PlayerManager& aPlayerManager)
+void Client::Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory)
 {
 	myPlayerManager = &aPlayerManager;
+	myEntityFactory = &aEntityFactory;
 }
 
 void Client::AssignPlayer(Player& aPlayer)
@@ -261,15 +263,61 @@ int Client::SendPositionMessage()
 	return SendClientMessage(message, sizeof(message));
 }
 
-
-// FEEL FREE TO ADJUST
-int Client::SendFlowerSpawnMessage()
+int Client::SendStoredMessages()
 {
-	TNP::ClientSpawnFlower message;
-	message.position = myPlayer->GetPosition();
-	message.messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
+	for (int i = 0; i < myMessagesToSend.size(); i++)
+	{
+		TNP::ClientSpawnFlower* msg = (TNP::ClientSpawnFlower*)myMessagesToSend[i];
+		SendClientMessage(*msg, sizeof(TNP::ClientSpawnFlower));
+	}
+	myMessagesToSend.clear();
+	return C_SUCCESS;
+}
 
-	return SendClientMessage(message, sizeof(message));
+
+void Client::StoreFlowerSpawnMessage()
+{
+	TNP::ClientSpawnFlower* message = new TNP::ClientSpawnFlower();
+	message->position = myPlayer->GetPosition();
+	message->messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
+	myMessagesToSend.push_back(message);
+}
+
+bool Client::HasMessagesToSend()
+{
+	return !myMessagesToSend.empty();
+}
+
+void Client::StorePlayerCommands(std::vector<ePlayerCommands> someCommands)
+{
+	for (int i = 0; i < someCommands.size(); i++)
+	{
+		switch (someCommands[i])
+		{
+		case ePlayerCommands::Move:
+		{
+
+			break;
+		}
+		case ePlayerCommands::Interact:
+		{
+
+			break;
+		}
+		case ePlayerCommands::SpawnFlower:
+		{
+			StoreFlowerSpawnMessage();
+			break;
+		}
+		case ePlayerCommands::SetColor:
+		{
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
 }
 
 int Client::SendClientMessage(const TNP::Message& aMSG, const int aSize)
@@ -479,6 +527,14 @@ int Client::HandleRecievedMessage()
 		//}
 
 
+		break;
+	}
+	case TNP::MessageType::serverSpawnFlower:
+	{
+		TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(mySocketBuffer);
+		
+		myEntityFactory->CreateEntity(EntityType::flower, msg->position);
+		
 		break;
 	}
 	default:

@@ -4,7 +4,7 @@
 #include "WinSock2.h"
 #include "WS2tcpip.h"
 #include "Network-Shared.h"
-
+#include "PlayerCommands.h"
 #include "Message.h"
 
 #include <unordered_map>
@@ -23,6 +23,8 @@
 
 
 class Player;
+class PlayerController;
+class EntityFactory;
  
 namespace TNP
 {
@@ -52,7 +54,7 @@ public:
 	Client() = default;
 	~Client();
 
-	void Init(PlayerManager& aPlayerManager);
+	void Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory);
 
 	int Start();
 	int Connect();
@@ -67,7 +69,14 @@ public:
 	int Shutdown();
 
 	int SendPositionMessage();
-	int SendFlowerSpawnMessage();
+
+	int SendStoredMessages();
+
+	void StoreFlowerSpawnMessage();
+
+	bool HasMessagesToSend();
+
+	void StorePlayerCommands(std::vector<ePlayerCommands> someCommands);
 
 
 	const inline bool GetHasJoined()
@@ -81,6 +90,7 @@ private:
 	int HandleRecievedMessage();
 
 	PlayerManager* myPlayerManager;
+	EntityFactory* myEntityFactory;
 
 	Player* myPlayer;
 
@@ -89,6 +99,9 @@ private:
 	std::thread myInputThread;
 
 	std::unordered_map<int, std::string> myConnectedClients;
+
+	std::vector<TNP::Message*> myMessagesToSend;
+
 
 	// Networking
 	SOCKET myUDPSocket;

@@ -3,6 +3,7 @@
 #include <tge/sprite/sprite.h>
 #include <tge/text/text.h>
 #include "PlayerController.h"
+#include "PlayerCommands.h"
 
 namespace Tga
 {
@@ -10,12 +11,6 @@ namespace Tga
 	class DebugDrawer;
 }
 
-enum class ePlayerCommands
-{
-	Move,
-	Interact,
-	SetColor
-};
 
 
 struct UsernameData
@@ -51,8 +46,11 @@ public:
 
 
 	void ExecuteCommand(ePlayerCommands aCommand);
+	void StoreCommand(ePlayerCommands aCommand);
+	bool HasCommands();
+	void ClearCommands();
 
-
+	std::vector<ePlayerCommands>& GetCommands() { return myCommands; }
 
 	const inline int GetPID() { return myServerPID; }
 	const inline Tga::Vector2f& GetPosition() { return myPosition; }
@@ -62,10 +60,12 @@ public:
 		return myIsPlayerOne;
 	}
 
+
+
 	int debugColor = 0;
 	Tga::Color debugCColor;
 private:
-
+	std::vector<ePlayerCommands> myCommands;
 	Tga::Vector2f myPosition;	
 	SpriteData mySpriteData;
 	UsernameData myUsernameData;

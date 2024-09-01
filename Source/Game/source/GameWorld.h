@@ -30,7 +30,6 @@ private:
 	EntityFactory myEntityFactory;
 	PlayerManager myPlayerManager;
 
-	Player* myPlayer;
 	PlayerController* myController;
 	Client myClient;
 

@@ -120,9 +120,9 @@ namespace TNP
 
 		void Deserialize(const char* aRawMessage)
 		{
-			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
+			TNP::ClientSpawnFlower* msg = (TNP::ClientSpawnFlower*)(aRawMessage);
 
-			memcpy(this, msg, sizeof(ClientMovedMessage));
+			memcpy(this, msg, sizeof(ClientSpawnFlower));
 		}
 
 		Tga::Vector2f position;
@@ -343,12 +343,13 @@ namespace TNP
 
 		void Deserialize(const char* aRawMessage)
 		{
-			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
+			TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(aRawMessage);
 
-			memcpy(this, msg, sizeof(ClientMovedMessage));
+			memcpy(this, msg, sizeof(ServerSpawnFlower));
 		}
 
 		Tga::Vector2f position;
+		int id = -1;
 	};
 
 

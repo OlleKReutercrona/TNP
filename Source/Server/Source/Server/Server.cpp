@@ -418,6 +418,21 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		break;
 	}
+	case TNP::MessageType::clientSpawnFlower:
+	{
+
+		TNP::ClientSpawnFlower message;
+		message.Deserialize(aMessage);
+
+		TNP::ServerSpawnFlower outMessage;
+		outMessage.position = message.position;
+		outMessage.id = myEntityIds;
+		myEntityIds++;
+		
+		SendMessageToAllClients(outMessage, sizeof(outMessage));
+
+		break;
+	}
 	default:
 		std::cout << "Failed to determine message type \n";
 	}

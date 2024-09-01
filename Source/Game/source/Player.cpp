@@ -81,6 +81,11 @@ void Player::ExecuteCommand(ePlayerCommands aCommand)
 
 		break;
 	}	
+	case ePlayerCommands::SpawnFlower:
+	{
+		
+		break;
+	}
 	case ePlayerCommands::SetColor:
 	{
 
@@ -90,4 +95,19 @@ void Player::ExecuteCommand(ePlayerCommands aCommand)
 		break;
 	}
 
+}
+
+void Player::StoreCommand(ePlayerCommands aCommand)
+{
+	myCommands.push_back(aCommand);
+}
+
+bool Player::HasCommands()
+{
+	return !myCommands.empty();
+}
+
+void Player::ClearCommands()
+{
+	myCommands.clear();
 }

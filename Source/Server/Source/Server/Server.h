@@ -84,6 +84,10 @@ private:
 	int SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID);
 	void SyncClients();
 
+
+	int myEntityIds = 0;
+
+
 	// Data members
 	std::map<int, int> myPortToID = {};
 	std::unordered_map<int, ClientData> myConnectedClients = {};

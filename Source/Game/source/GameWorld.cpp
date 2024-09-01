@@ -37,7 +37,7 @@ void GameWorld::Init()
 	myEntityFactory.Init();
 	myPlayerManager.Init();
 
-	myClient.Init(myPlayerManager);
+	myClient.Init(myPlayerManager, myEntityFactory);
 
 	if (C_FAIL(myClient.Start()))
 	{
@@ -80,6 +80,13 @@ void GameWorld::Update(float aTimeDelta)
 
 	// SKICKA MEDDELANDEN
 	myController->Update(aTimeDelta);
+	if (myPlayerManager.GetLocalPlayer()->HasCommands())
+	{
+		myClient.StorePlayerCommands(myPlayerManager.GetLocalPlayer()->GetCommands());
+		myPlayerManager.GetLocalPlayer()->ClearCommands();
+	}
+	
+
 	//myClient.SendPositionMessage();
 
 
@@ -144,6 +151,11 @@ void GameWorld::StartRecieveMessageThread()
 				{
 					// Send Client position
 					myClient.SendPositionMessage();
+					if (myClient.HasMessagesToSend())
+					{
+						myClient.SendStoredMessages();
+					}
+
 				}
 
 

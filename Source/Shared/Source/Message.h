@@ -14,7 +14,8 @@ namespace TNP
 		clientJoin,							// Sent from client when requesting to join
 		clientDisconnect,					// Sent from client to tell server that they disconnected
 		clientMessage,						// Message sent from client to server
-		clientSendPosition,
+		clientSendPosition,					
+		clientSpawnFlower,					// Sent from client to spawn flower on Server
 
 
 		//Server
@@ -23,6 +24,7 @@ namespace TNP
 		serverClientDisconnected,			// Sent from server to all clients to allert them that another client disconnected
 		serverClientMessage,				// Message sent from a client and then being forwarded from server to all the other clients
 		serverBundle,
+		serverSpawnFlower,
 		updateClients,
 
 		count,
@@ -46,6 +48,8 @@ namespace TNP
 		const MessageType type;
 		int messageID = 0;
 	};
+
+#pragma region ClientMessages
 
 
 	struct ClientJoin : public Message
@@ -106,6 +110,28 @@ namespace TNP
 		int playerID = -1;
 		Tga::Vector2f position;
 	};
+
+
+
+
+	struct ClientSpawnFlower : public Message
+	{
+		ClientSpawnFlower() : Message(MessageType::clientSpawnFlower) {}
+
+		void Deserialize(const char* aRawMessage)
+		{
+			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientMovedMessage));
+		}
+
+		Tga::Vector2f position;
+	};
+
+#pragma endregion
+
+#pragma region ServerMessages
+
 
 	struct UpdateClientsMessage : public Message
 	{
@@ -311,6 +337,21 @@ namespace TNP
 		char message[MESSAGE_MAX_SIZE] = { 0 };
 	};
 
+	struct ServerSpawnFlower : public Message
+	{
+		ServerSpawnFlower() : Message(MessageType::serverSpawnFlower) {}
+
+		void Deserialize(const char* aRawMessage)
+		{
+			TNP::ClientMovedMessage* msg = (TNP::ClientMovedMessage*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientMovedMessage));
+		}
+
+		Tga::Vector2f position;
+	};
+
+
 	/*
 		A Bundle of messages
 	*/
@@ -322,4 +363,7 @@ namespace TNP
 		int messageIndex = -1;
 		char messages[NETMESSAGE_SIZE] = { 0 };
 	};
+
+#pragma endregion
+
 }

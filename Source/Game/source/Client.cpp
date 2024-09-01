@@ -261,6 +261,17 @@ int Client::SendPositionMessage()
 	return SendClientMessage(message, sizeof(message));
 }
 
+
+// FEEL FREE TO ADJUST
+int Client::SendFlowerSpawnMessage()
+{
+	TNP::ClientSpawnFlower message;
+	message.position = myPlayer->GetPosition();
+	message.messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
+
+	return SendClientMessage(message, sizeof(message));
+}
+
 int Client::SendClientMessage(const TNP::Message& aMSG, const int aSize)
 {
 	// Unsure whether sending a reference to TNP::Message here leaves out other derived data and only send the message type...

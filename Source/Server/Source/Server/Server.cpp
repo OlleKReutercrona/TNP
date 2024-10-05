@@ -624,14 +624,10 @@ std::string Server::UT_ProcessMessageClientJoin(const char* aMessage)
 	return name;
 }
 
-
-
-
 TNP::MessageType Server::DetermineMessageType(const char* aMessage)
 {
 	return *(TNP::MessageType*)&aMessage[0];
 }
-
 
 void Server::HandleClientDisconnect(const ClientData& aClient)
 {

@@ -34,6 +34,14 @@ namespace TNP
 }
 
 
+struct AckedMessage
+{
+	AckedMessage(const int aMessageID) : messageID(aMessageID) {}
+
+	const int messageID = -1;
+	float timeSinceAck = 0.0f;
+};
+
 // This is jank and should maybe be taken care of by server but probably not
 struct MessageCounter
 {
@@ -92,10 +100,14 @@ public:
 		return hasJoined;
 	}
 
+	void UpdateAckedMessages(const float aDT);
 private:
 	int SendClientMessage(const TNP::Message& aMSG, const int aSize);
 
 	int HandleRecievedMessage();
+
+	void SendAckMessage(const TNP::Message& aMessage);
+
 
 	PlayerManager* myPlayerManager;
 	EntityFactory* myEntityFactory;
@@ -110,6 +122,8 @@ private:
 
 	std::vector<TNP::Message*> myMessagesToSend;
 
+	const float myAckMessageSaveTime = 1.0f;
+	std::map<unsigned int, AckedMessage> myAckedMessages;
 
 	// Networking
 	SOCKET myUDPSocket;

@@ -173,9 +173,11 @@ int Server::Run()
 	{
 		timer.Update();
 
+		const float deltaTime = timer.GetDeltaTime();
+
 		for (auto& [id, client] : myConnectedClients)
 		{
-			client.timeSinceLastMessage += timer.GetDeltaTime();
+			client.timeSinceLastMessage += deltaTime;
 		}
 
 		//// Clear the buffer.
@@ -194,7 +196,7 @@ int Server::Run()
 		//	ProcessMessage(mySocketBuffer, clientAddressInformation);
 		//}
 
-		timeSinceLastTick += timer.GetDeltaTime();
+		timeSinceLastTick += deltaTime;
 
 		if (timeSinceLastTick < tickTimeStep) { continue; }
 
@@ -202,38 +204,14 @@ int Server::Run()
 
 		// Send messages
 		{
+			std::lock_guard<std::mutex> guard(myClientDataMutex);
+
 			// Sync all clients
 			SyncClients();
 
-			// Check if client is inactive
-			std::vector<int> inactiveClients;
-			for (auto& [id, client] : myConnectedClients)
-			{
-				if (client.timeSinceLastMessage >= myClientDisconnectTime)
-				{
-					inactiveClients.emplace_back(id);
-				}
-			}
+			CheckForClientDisconnect();
 
-			if (inactiveClients.size() > 0)
-			{
-				std::lock_guard<std::mutex> guard(myClientDataMutex);
-
-				for (unsigned int i = 0; i < inactiveClients.size(); i++)
-				{
-					ClientData& client = myConnectedClients.at(inactiveClients[i]);
-
-					TNP::ServerClientDisconnected msg;
-					msg.id = myPortToID[client.clientPort];
-
-					std::cout << "[SERVER] User '" << client.name << "' has timed out from the server." << std::endl;
-
-					HandleClientDisconnect(client);
-
-					SendMessageToAllClients(msg, sizeof(msg));
-				}
-			}
-
+			HandleUnAckedMessages(deltaTime);
 		}
 
 	}
@@ -420,16 +398,34 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	}
 	case TNP::MessageType::clientSpawnFlower:
 	{
-
 		TNP::ClientSpawnFlower message;
 		message.Deserialize(aMessage);
+
+		auto* flower = myEntityFactory.CreateEntity(server::EntityType::flower);
+		flower->myPosition = message.position;
 
 		TNP::ServerSpawnFlower outMessage;
 		outMessage.position = message.position;
 		outMessage.id = myEntityIds;
 		myEntityIds++;
-		
+
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
+
+		break;
+	}
+	case TNP::MessageType::ackMessage:
+	{
+		TNP::AckMessage* message = (TNP::AckMessage*)(aMessage);
+
+		auto& client = myConnectedClients.at(myPortToID[clientPort]);
+
+		if (client.myUnackedMessages.count(message->myAckedMessageId) > 0)
+		{
+			std::cout << "Acked message " << message->myAckedMessageId << ", received from client " << client.name << "\n";
+
+			// Check here for roundtime and stuff 
+			client.myUnackedMessages.erase(message->myAckedMessageId);
+		}
 
 		break;
 	}
@@ -449,24 +445,14 @@ int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMes
 	// Need to check if message size is greater than max size 
 	// if it is it needs to be packed in two messages
 
-	const char* message = (char*)&aMessage;
-
-	//DEBUGMessageValidator(message, aMessageSize);
-
 	// Redist message to other clients
-	for (auto& client : myConnectedClients)
+	for (auto& [clientID, client] : myConnectedClients)
 	{
 		// The client that sent the message doesn't need to get it again
-		if (client.second.myServerID == aClientToSkip) continue;
+		if (client.myServerID == aClientToSkip) continue;
 
 		// Send it back
-		if (sendto(myUDPSocket, message, aMessageSize, 0, reinterpret_cast<sockaddr*>(&client.second.sockaddr), sizeof(client.second.sockaddr)) == SOCKET_ERROR)
-		{
-			std::cout << "Failed to send message\n";
-			std::cout << "Error: " << WSAGetLastError() << std::endl;
-			isRunning = false;
-			break;
-		}
+		SendMessage(aMessage, aMessageSize, client);
 	}
 
 	return 0;
@@ -474,24 +460,34 @@ int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMes
 
 int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID)
 {
-	ClientData client = myConnectedClients[aClientID];
+	ClientData& client = myConnectedClients[aClientID];
 
+	return SendMessage(aMessage, aMessageSize, client);
+}
+
+bool Server::SendMessage(const TNP::Message& aMessage, const int aMessageSize, ClientData& aClient)
+{
+#define ACK_MESSAGES
+#ifdef ACK_MESSAGES
+	aClient.myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(aMessage.messageID, { std::make_shared<TNP::Message>(aMessage), aMessageSize }));
+#endif
 	const char* message = (char*)&aMessage;
 
-	if (sendto(myUDPSocket, message, aMessageSize, 0, reinterpret_cast<sockaddr*>(&client.sockaddr), sizeof(client.sockaddr)) == SOCKET_ERROR)
+	sockaddr* socketAddress = reinterpret_cast<sockaddr*>(&aClient.sockaddr);
+
+	if (sendto(myUDPSocket, message, aMessageSize, 0, socketAddress, sizeof(*socketAddress)) == SOCKET_ERROR)
 	{
 		std::cout << "Failed to send message\n";
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
-		return SERVER_FAILED;
+		isRunning = false;
+		return false;
 	}
-
-	return 0;
+	return true;
 }
 
 void Server::SyncClients()
 {
 	// See if any clients moved since last check
-	std::lock_guard<std::mutex> guard(myClientDataMutex);
 
 	TNP::UpdateClientsMessage message;
 
@@ -500,9 +496,6 @@ void Server::SyncClients()
 	for (auto& [playerID, client] : myUpdateData)
 	{
 		message.Serialize(index, client.PID, client.newPosition);
-		//memcpy(ptr, &client, sizeof(ClientPositionUpdateData));
-
-		//ptr += sizeof(ClientPositionUpdateData);
 	}
 
 	message.numberOfClients = (int)myUpdateData.size();
@@ -510,6 +503,61 @@ void Server::SyncClients()
 	myUpdateData.clear();
 
 	SendMessageToAllClients(message, sizeof(message));
+}
+
+void Server::CheckForClientDisconnect()
+{
+	// Check if client is inactive
+	std::vector<int> inactiveClients;
+	for (auto& [id, client] : myConnectedClients)
+	{
+		if (client.timeSinceLastMessage >= myClientDisconnectTime)
+		{
+			inactiveClients.emplace_back(id);
+		}
+	}
+
+	if (inactiveClients.size() > 0)
+	{
+		for (unsigned int i = 0; i < inactiveClients.size(); i++)
+		{
+			ClientData& client = myConnectedClients.at(inactiveClients[i]);
+
+			TNP::ServerClientDisconnected msg;
+			msg.id = myPortToID[client.clientPort];
+
+			std::cout << "[SERVER] User '" << client.name << "' has timed out from the server." << std::endl;
+
+			HandleClientDisconnect(client);
+
+			SendMessageToAllClients(msg, sizeof(msg));
+		}
+	}
+}
+
+void Server::HandleUnAckedMessages(const float aDT)
+{
+	for (auto& [clientID, client] : myConnectedClients)
+	{
+		for (auto& [index, message] : client.myUnackedMessages)
+		{
+			message.myTimeSinceFirstAttempt += aDT;
+			message.myTimeSinceLastAttempt += aDT;
+
+			if (message.myTimeSinceFirstAttempt < myUnAckedMessageRetryTime)
+			{
+				continue;
+			}
+
+			if (message.myTimeSinceLastAttempt > myUnAckedMessageRetryTime)
+			{
+				message.myTimeSinceLastAttempt = 0.0f;
+
+				message.myAttempts++;
+				SendMessageToAClient(*message.myMessage.get(), message.myMesssageSize, clientID);
+			}
+		}
+	}
 }
 
 int Server::Shutdown()

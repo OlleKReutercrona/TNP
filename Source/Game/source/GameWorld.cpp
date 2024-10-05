@@ -270,6 +270,7 @@ void GameWorld::StartRecieveMessageThread()
 						myClient.SendStoredMessages();
 					}
 
+					myClient.UpdateAckedMessages(Tga::Engine::GetInstance()->GetDeltaTime());
 				}
 
 

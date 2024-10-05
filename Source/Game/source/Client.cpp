@@ -377,6 +377,8 @@ int Client::HandleRecievedMessage()
 {
 	TNP::MessageType type = (TNP::MessageType)mySocketBuffer[0];
 
+	TNP::Message* baseMessage = (TNP::Message*)mySocketBuffer;
+
 	switch (type)
 	{
 	case TNP::MessageType::error:
@@ -440,17 +442,6 @@ int Client::HandleRecievedMessage()
 		{
 			Tga::Color color;
 			UnpackColors(msg->myColour, color.myR, color.myG, color.myB, color.myA);
-
-			//unsigned char red = msg->myColour >> 24 & 0xFF;
-			//unsigned char green = msg->myColour >> 16 & 0xFF;
-			//unsigned char blue = msg->myColour >> 8 & 0xFF;
-			//unsigned char alpha = msg->myColour & 0xFF;
-
-			//color.myA = (float)(red / 255.0f);
-			//color.myB = (float)(green / 255.0f);
-			//color.myG = (float)(blue / 255.0f);
-			//color.myR = (float)(alpha / 255.0f);
-
 
 			myPlayer = myPlayerManager->CreatePlayer(msg->clientID, color, { 400,400 }, true);
 			myPlayer->SetUsername(myClientName);
@@ -579,5 +570,36 @@ int Client::HandleRecievedMessage()
 		break;
 	}
 
+	SendAckMessage(*baseMessage);
+
 	return C_SUCCESS;
+}
+
+void Client::SendAckMessage(const TNP::Message& aMessage)
+{
+	if (myAckedMessages.count(aMessage.messageID) > 0)
+	{
+		return;
+	}
+
+	myAckedMessages.insert(std::pair<unsigned int, AckedMessage>(aMessage.messageID, { aMessage.messageID }));
+
+	TNP::AckMessage ackMessage(aMessage.messageID);
+
+	SendClientMessage(ackMessage, sizeof(TNP::AckMessage));
+}
+
+void Client::UpdateAckedMessages(const float aDT)
+{
+	for (auto it = myAckedMessages.begin(); it != myAckedMessages.end();)
+	{
+		it->second.timeSinceAck += aDT;
+		if (it->second.timeSinceAck >= myAckMessageSaveTime)
+		{
+			it = myAckedMessages.erase(it);
+			continue;
+		}
+
+		++it;
+	}
 }

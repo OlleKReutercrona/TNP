@@ -17,6 +17,7 @@ namespace TNP
 		clientSendPosition,					
 		clientSpawnFlower,					// Sent from client to spawn flower on Server
 
+		ackMessage,
 
 		//Server
 		serverConnectedClientData,
@@ -129,6 +130,13 @@ namespace TNP
 	};
 
 #pragma endregion
+
+	struct AckMessage : public Message
+	{
+		AckMessage(const int anAckID) : Message(MessageType::ackMessage), myAckedMessageId(anAckID){}
+
+		const int myAckedMessageId;
+	};
 
 #pragma region ServerMessages
 
@@ -361,9 +369,38 @@ namespace TNP
 	{
 		ServerMessageBundle() : Message(MessageType::serverBundle) {}
 
+	public:
+		/* The number of messages in the buffer */
 		int numberOfMessages = -1;
+
+		/* The index of what message this is over a number of messages in case buffer got full. */
 		int messageIndex = -1;
+
+		// message buffer
 		char messages[NETMESSAGE_SIZE] = { 0 };
+	};
+
+	struct ServerMessageBundleSerializer
+	{
+		ServerMessageBundleSerializer(ServerMessageBundle& aBundle) : myBundle(aBundle) {};
+
+		bool Serialize(const char* aRawMessage, const unsigned int aSize)
+		{
+			if (myPtr + aSize > NETMESSAGE_SIZE) 
+			{ 
+				return false; 
+			}
+
+			memcpy(&myBundle.messages[myPtr], aRawMessage, aSize);
+			myPtr += aSize;
+
+			return true;
+		}
+
+		unsigned int GetSizeLeft() { return NETMESSAGE_SIZE - myPtr; };
+	private:
+		ServerMessageBundle& myBundle;
+		int myPtr = 0;
 	};
 
 #pragma endregion

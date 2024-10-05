@@ -121,6 +121,8 @@ private:
 
 	void CheckForClientDisconnect();
 
+	void SyncAllEntitiesToJoinedClient(int clientID);
+
 	void HandleUnAckedMessages(const float aDT);
 
 	int myEntityIds = 0;

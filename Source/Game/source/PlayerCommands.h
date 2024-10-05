@@ -12,3 +12,9 @@ enum class ePlayerCommands
 
 	Count
 };
+
+struct PlayerCommandData 
+{
+	ePlayerCommands playerCommand;
+	int ID;
+};

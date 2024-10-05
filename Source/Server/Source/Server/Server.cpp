@@ -209,7 +209,7 @@ int Server::Run()
 			// Sync all clients
 			SyncClients();
 
-			//CheckForClientDisconnect();
+			CheckForClientDisconnect();
 
 			HandleUnAckedMessages(deltaTime);
 		}
@@ -319,7 +319,11 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 			SendMessageToAClient(connectionMessage, sizeof(connectionMessage), client.myServerID);
 		}
+		//for (size_t i = 0; i < length; i++)
+		//{
 
+		//}
+		SyncAllEntitiesToJoinedClient(client.myServerID);
 		break;
 	}
 	case TNP::MessageType::clientDisconnect:
@@ -413,6 +417,21 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		outMessage.id = myEntityIds;
 
 		myEntityIds++;
+
+		SendMessageToAllClients(outMessage, sizeof(outMessage));
+
+		break;
+	}
+	case TNP::MessageType::clientDestoryFlower:
+	{
+
+		TNP::ClientDestroyFlower message;
+		message.Deserialize(aMessage);
+
+		myEntityFactory.DestroyEntity(server::EntityType::flower, message.id);
+
+		TNP::ServerDestroyFlower outMessage;
+		outMessage.id = message.id;
 
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
 
@@ -536,6 +555,22 @@ void Server::CheckForClientDisconnect()
 			HandleClientDisconnect(client);
 
 			SendMessageToAllClients(msg, sizeof(msg));
+		}
+	}
+}
+
+void Server::SyncAllEntitiesToJoinedClient(int clientID)
+{
+	auto entities = myEntityFactory.GetEntities();
+	for (auto& [type, list] : entities)
+	{
+		for (auto& [id, entity] : list)
+		{
+			TNP::ServerSpawnFlower outMessage;
+			outMessage.position = entity.myPosition;
+			outMessage.id = myEntityIds;
+
+			SendMessageToAClient(outMessage, sizeof(outMessage), clientID);
 		}
 	}
 }

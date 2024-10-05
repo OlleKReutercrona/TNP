@@ -49,6 +49,11 @@ bool EntityFactory::DeleteEntity(const EntityType aType, const unsigned int anID
 	return false;
 }
 
+std::unordered_map<unsigned int, Entity*>& EntityFactory::GetAllEntitiesOfType(const EntityType aType)
+{
+	return myEntities[aType];
+}
+
 void EntityFactory::Render(Tga::SpriteDrawer& aSpriteDrawer)
 {
 	for (auto& [type, list] : myEntities)

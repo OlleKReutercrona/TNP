@@ -29,3 +29,8 @@ server::ServerEntity* server::ServerEntityFactory::GetEntity(const EntityType aT
 
     return nullptr;
 }
+
+std::map<server::EntityType, std::map<unsigned int, server::ServerEntity>> server::ServerEntityFactory::GetEntities()
+{
+    return myEntities;
+}

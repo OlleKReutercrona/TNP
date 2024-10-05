@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "Global.h"
 #include "EntityFactory.h"
-
+#include "Entity.h"
 
 PlayerController::PlayerController(Player* aPlayer, EntityFactory& anEntityFactory)
 {
@@ -44,15 +44,23 @@ void PlayerController::Update(const float& aDeltaTime)
 	if (myPlayerControllerData.useAction)
 	{
 		myPlayerControllerData.useAction = false;
-		myPlayer->StoreCommand(ePlayerCommands::SpawnFlower);
+		PlayerCommandData pcd;
+		pcd.playerCommand = ePlayerCommands::SpawnFlower;
+		myPlayer->StoreCommand(pcd);
 		//myEntityFactory->CreateEntity(EntityType::flower, myPlayer->GetPosition());
 	}
 
 	if (myPlayerControllerData.interactAction)
 	{
-		myPlayerControllerData.useAction = false;
-
-		//myEntityFactory->DeleteEntity(EntityType::flower, );
+		myPlayerControllerData.interactAction = false;
+		int flowerID = GetClosetFlowerID(); // Return -1 if it did not find any flower close enough
+		if (flowerID != -1)
+		{
+			PlayerCommandData pcd;
+			pcd.playerCommand = ePlayerCommands::DestroyFlower;
+			pcd.ID = flowerID;
+			myPlayer->StoreCommand(pcd);
+		}
 	}
 
 }
@@ -83,4 +91,22 @@ void PlayerController::UpdateControllerData()
 	}
 
 	myPlayerControllerData.inputDirection.Normalize();
+}
+
+int PlayerController::GetClosetFlowerID()
+{
+	auto flowers = myEntityFactory->GetAllEntitiesOfType(EntityType::flower);
+
+	int closestID = -1;
+	float closest = pickUpDistance;
+	for (auto& [id, flower] : flowers)
+	{
+		float distanceBetweenFlowerAndPlayer = Tga::Vector2f::Distance(myPlayer->GetPosition(), flower->GetPosition());
+		if (closest > distanceBetweenFlowerAndPlayer)
+		{
+			closest = distanceBetweenFlowerAndPlayer;
+			closestID = id;
+		}
+	}
+	return closestID;
 }

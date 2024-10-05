@@ -16,6 +16,8 @@ namespace server
 
 		ServerEntity* GetEntity(const EntityType aType, const unsigned int anId);
 
+		std::map<EntityType, std::map<unsigned int, ServerEntity>> GetEntities();
+
 	private:
 		std::map<EntityType, std::map<unsigned int, ServerEntity>> myEntities;
 	};

@@ -67,9 +67,9 @@ void Player::DebugRender(Tga::DebugDrawer& aDebugDrawer)
 	aDebugDrawer.DrawCircle(mySpriteData.instanceDataHat.myPosition + mySpriteData.instanceDataHat.myPivot, 10.f, { 0,1,1,1 });
 }
 
-void Player::ExecuteCommand(ePlayerCommands aCommand)
+void Player::ExecuteCommand(PlayerCommandData aCommand)
 {
-	switch (aCommand)
+	switch (aCommand.playerCommand)
 	{
 	case ePlayerCommands::Move:
 	{
@@ -97,7 +97,7 @@ void Player::ExecuteCommand(ePlayerCommands aCommand)
 
 }
 
-void Player::StoreCommand(ePlayerCommands aCommand)
+void Player::StoreCommand(PlayerCommandData aCommand)
 {
 	myCommands.push_back(aCommand);
 }

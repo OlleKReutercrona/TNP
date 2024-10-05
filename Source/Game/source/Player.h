@@ -45,12 +45,12 @@ public:
 
 
 
-	void ExecuteCommand(ePlayerCommands aCommand);
-	void StoreCommand(ePlayerCommands aCommand);
+	void ExecuteCommand(PlayerCommandData aCommand);
+	void StoreCommand(PlayerCommandData aCommand);
 	bool HasCommands();
 	void ClearCommands();
 
-	std::vector<ePlayerCommands>& GetCommands() { return myCommands; }
+	std::vector<PlayerCommandData>& GetCommands() { return myCommands; }
 
 	const inline int GetPID() { return myServerPID; }
 	const inline Tga::Vector2f& GetPosition() { return myPosition; }
@@ -65,7 +65,7 @@ public:
 	int debugColor = 0;
 	Tga::Color debugCColor;
 private:
-	std::vector<ePlayerCommands> myCommands;
+	std::vector<PlayerCommandData> myCommands;
 	Tga::Vector2f myPosition;	
 	SpriteData mySpriteData;
 	UsernameData myUsernameData;

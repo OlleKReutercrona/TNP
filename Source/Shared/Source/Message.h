@@ -16,6 +16,7 @@ namespace TNP
 		clientMessage,						// Message sent from client to server
 		clientSendPosition,					
 		clientSpawnFlower,					// Sent from client to spawn flower on Server
+		clientDestoryFlower,				// Sent from client to destroy flower on Server
 
 		ackMessage,
 
@@ -26,6 +27,7 @@ namespace TNP
 		serverClientMessage,				// Message sent from a client and then being forwarded from server to all the other clients
 		serverBundle,
 		serverSpawnFlower,
+		serverDestroyFlower,
 		updateClients,
 
 		count,
@@ -39,6 +41,7 @@ namespace TNP
 	// __char to int___
 	// char c = 'A'
 	// int i(c)
+
 
 
 	struct Message
@@ -127,6 +130,20 @@ namespace TNP
 		}
 
 		Tga::Vector2f position;
+	};
+
+	struct ClientDestroyFlower : public Message
+	{
+		ClientDestroyFlower() : Message(MessageType::clientDestoryFlower) {}
+
+		void Deserialize(const char* aRawMessage)
+		{
+			TNP::ClientDestroyFlower* msg = (TNP::ClientDestroyFlower*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ClientDestroyFlower));
+		}
+
+		int id = -1;
 	};
 
 #pragma endregion
@@ -361,6 +378,19 @@ namespace TNP
 		int id = -1;
 	};
 
+	struct ServerDestroyFlower : public Message
+	{
+		ServerDestroyFlower() : Message(MessageType::serverDestroyFlower) {}
+
+		void Deserialize(const char* aRawMessage)
+		{
+			TNP::ServerDestroyFlower* msg = (TNP::ServerDestroyFlower*)(aRawMessage);
+
+			memcpy(this, msg, sizeof(ServerDestroyFlower));
+		}
+
+		int id = -1;
+	};
 
 	/*
 		A Bundle of messages

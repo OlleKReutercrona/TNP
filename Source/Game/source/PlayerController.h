@@ -37,6 +37,8 @@ public:
 private:
 	void UpdateControllerData();
 
+	int GetClosetFlowerID();
+
 private:
 	
 	PlayerControllerData myPlayerControllerData;
@@ -44,5 +46,11 @@ private:
 	Player* myPlayer;
 	HWND myHWND;
 
+
+
+
 	EntityFactory* myEntityFactory;
+
+	float pickUpDistance = 60.f;
+
 };

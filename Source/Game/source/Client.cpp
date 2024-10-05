@@ -305,11 +305,20 @@ int Client::SendStoredMessages()
 {
 	for (int i = 0; i < myMessagesToSend.size(); i++)
 	{
-		TNP::ClientSpawnFlower* msg = (TNP::ClientSpawnFlower*)myMessagesToSend[i];
-		SendClientMessage(*msg, sizeof(TNP::ClientSpawnFlower));
+		SendClientMessage(*myMessagesToSend[i].message, myMessagesToSend[i].messageSize);
+	}
+	RemoveStoredMessages();
+	return C_SUCCESS;
+}
+
+void Client::RemoveStoredMessages()
+{
+	for (int i = 0; i < myMessagesToSend.size(); i++)
+	{
+		delete myMessagesToSend[i].message;
 	}
 	myMessagesToSend.clear();
-	return C_SUCCESS;
+
 }
 
 
@@ -318,7 +327,21 @@ void Client::StoreFlowerSpawnMessage()
 	TNP::ClientSpawnFlower* message = new TNP::ClientSpawnFlower();
 	message->position = myPlayer->GetPosition();
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
-	myMessagesToSend.push_back(message);
+
+	MessageToSendData messageToSendData(message, sizeof(TNP::ClientSpawnFlower));
+
+	myMessagesToSend.push_back(messageToSendData);
+}
+
+void Client::StoreDestroyFlowerMessage(int aID)
+{
+	TNP::ClientDestroyFlower* message = new TNP::ClientDestroyFlower();
+	message->id = aID;
+	message->messageID = myMessageCounter((int)TNP::MessageType::clientDestoryFlower);
+
+	MessageToSendData messageToSendData(message, sizeof(TNP::ClientDestroyFlower));
+
+	myMessagesToSend.push_back(messageToSendData);
 }
 
 bool Client::HasMessagesToSend()
@@ -326,11 +349,11 @@ bool Client::HasMessagesToSend()
 	return !myMessagesToSend.empty();
 }
 
-void Client::StorePlayerCommands(std::vector<ePlayerCommands> someCommands)
+void Client::StorePlayerCommands(std::vector<PlayerCommandData> someCommands)
 {
 	for (int i = 0; i < someCommands.size(); i++)
 	{
-		switch (someCommands[i])
+		switch (someCommands[i].playerCommand)
 		{
 		case ePlayerCommands::Move:
 		{
@@ -345,6 +368,11 @@ void Client::StorePlayerCommands(std::vector<ePlayerCommands> someCommands)
 		case ePlayerCommands::SpawnFlower:
 		{
 			StoreFlowerSpawnMessage();
+			break;
+		}	
+		case ePlayerCommands::DestroyFlower:
+		{
+			StoreDestroyFlowerMessage(someCommands[i].ID);
 			break;
 		}
 		case ePlayerCommands::SetColor:
@@ -563,6 +591,14 @@ int Client::HandleRecievedMessage()
 		TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(mySocketBuffer);
 		
 		myEntityFactory->CreateEntity(EntityType::flower, msg->position);
+		
+		break;
+	}
+	case TNP::MessageType::serverDestroyFlower:
+	{
+		TNP::ServerDestroyFlower* msg = (TNP::ServerDestroyFlower*)(mySocketBuffer);
+		
+		myEntityFactory->DeleteEntity(EntityType::flower, msg->id);
 		
 		break;
 	}

@@ -14,6 +14,11 @@ void Entity::SetPosition(const Tga::Vector2f aPosition)
 	mySpriteInstance.myPosition = aPosition;
 }
 
+Tga::Vector2f Entity::GetPosition()
+{
+	return myPosition;
+}
+
 void Entity::Render(Tga::SpriteDrawer& aSpriteDrawer)
 {
 	aSpriteDrawer.Draw(mySharedData, mySpriteInstance);

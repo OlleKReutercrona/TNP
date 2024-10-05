@@ -15,7 +15,7 @@ public:
 
 	void Init();
 	void SetPosition(const Tga::Vector2f aPosition);
-
+	Tga::Vector2f GetPosition();
 
 	void Render(Tga::SpriteDrawer& aSpriteDrawer);
 private:

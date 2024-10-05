@@ -27,6 +27,9 @@ public:
 	Entity* GetEntity(const EntityType aType, const unsigned int anID);
 	bool DeleteEntity(const EntityType aType, const unsigned int anID);
 
+	std::unordered_map<unsigned int, Entity*>& GetAllEntitiesOfType(const EntityType aType);
+
+
 	void Render(Tga::SpriteDrawer& aSpriteDrawer);
 private:
 

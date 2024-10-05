@@ -35,6 +35,16 @@ namespace TNP
 }
 
 
+struct MessageToSendData
+{
+	MessageToSendData(TNP::Message* aMessage, int aMessageSize) : message(aMessage), messageSize(aMessageSize)
+	{}
+
+	TNP::Message* message;
+	int messageSize = 0;
+};
+
+
 struct AckedMessage
 {
 	AckedMessage(const int aMessageID) : messageID(aMessageID) {}
@@ -84,12 +94,15 @@ public:
 	int SendPositionMessage();
 
 	int SendStoredMessages();
+	void RemoveStoredMessages();
 
 	void StoreFlowerSpawnMessage();
 
+	void StoreDestroyFlowerMessage(int aID);
+
 	bool HasMessagesToSend();
 
-	void StorePlayerCommands(std::vector<ePlayerCommands> someCommands);
+	void StorePlayerCommands(std::vector<PlayerCommandData> someCommands);
 
 	const inline bool IsConnected()
 	{
@@ -121,7 +134,7 @@ private:
 
 	std::unordered_map<int, std::string> myConnectedClients;
 
-	std::vector<TNP::Message*> myMessagesToSend;
+	std::vector<MessageToSendData> myMessagesToSend;
 
 	const float myAckMessageSaveTime = 1.0f;
 	std::map<unsigned int, AckedMessage> myAckedMessages;

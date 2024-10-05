@@ -31,6 +31,8 @@ struct ClientData
 	// Game Specific Data
 	Tga::Vector2f position = {};
 	int color = 0;
+
+	int messageCounter = 0;
 };
 
 class UnAckedMessage
@@ -111,10 +113,10 @@ private:
 
 	//void HandleClientJoined(TNP::ClientJoin& aMessage, const ClientData& someClientData);
 
-	int SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip = -1);
-	int SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID);
+	int SendMessageToAllClients(TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip = -1);
+	int SendMessageToAClient(TNP::Message& aMessage, const int aMessageSize, const int aClientID);
 #undef SendMessage
-	bool SendMessage(const TNP::Message& aMessage, const int aMessageSize, ClientData& aClient);
+	bool SendMessage(TNP::Message& aMessage, const int aMessageSize, ClientData& aClient);
 	void SyncClients();
 
 	void CheckForClientDisconnect();

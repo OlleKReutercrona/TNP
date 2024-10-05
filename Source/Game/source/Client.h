@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <string>
 
+#include <mutex>
 
 #define SERVER_ADDRESS "127.0.0.1"
 #define SERVER_PORT 42000
@@ -135,6 +136,7 @@ private:
 	char mySocketBuffer[NETMESSAGE_SIZE];
 	char myMessage[NETMESSAGE_SIZE]{ 0 };
 	
+	std::mutex myAckMutex;
 
 	bool hasJoined = false;
 	bool isConnected = false;

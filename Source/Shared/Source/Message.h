@@ -47,7 +47,7 @@ namespace TNP
 
 	public:
 		const MessageType type;
-		int messageID = 0;
+		int messageID = -1;
 	};
 
 #pragma region ClientMessages

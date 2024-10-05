@@ -582,6 +582,8 @@ void Client::SendAckMessage(const TNP::Message& aMessage)
 		return;
 	}
 
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
 	myAckedMessages.insert(std::pair<unsigned int, AckedMessage>(aMessage.messageID, { aMessage.messageID }));
 
 	TNP::AckMessage ackMessage(aMessage.messageID);
@@ -591,6 +593,8 @@ void Client::SendAckMessage(const TNP::Message& aMessage)
 
 void Client::UpdateAckedMessages(const float aDT)
 {
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
 	for (auto it = myAckedMessages.begin(); it != myAckedMessages.end();)
 	{
 		it->second.timeSinceAck += aDT;

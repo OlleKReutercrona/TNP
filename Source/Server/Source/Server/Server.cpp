@@ -209,7 +209,7 @@ int Server::Run()
 			// Sync all clients
 			SyncClients();
 
-			CheckForClientDisconnect();
+			//CheckForClientDisconnect();
 
 			HandleUnAckedMessages(deltaTime);
 		}
@@ -328,8 +328,10 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		message.Deserialize(aMessage);
 		//TNP::ClientDisconnect message = *(TNP::ClientDisconnect*)&aMessage;
 
+
 		TNP::ServerClientDisconnected msg;
 		msg.id = myPortToID[clientPort];
+
 		ClientData& client = myConnectedClients.at(msg.id);
 
 		std::cout << "[SERVER] User '" << client.name << "' has disconnected from the server." << std::endl;
@@ -350,7 +352,9 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		const int clientID = myPortToID.at(clientPort);
 
-		std::string printmsg = "[" + myConnectedClients.at(clientID).name + "] " + message.message;
+		auto& client = myConnectedClients.at(clientID);
+
+		std::string printmsg = "[" + client.name + "] " + message.message;
 
 		TNP::ServerClientMessage msg;
 		msg.id = clientID;
@@ -407,6 +411,7 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		TNP::ServerSpawnFlower outMessage;
 		outMessage.position = message.position;
 		outMessage.id = myEntityIds;
+
 		myEntityIds++;
 
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
@@ -421,8 +426,6 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		if (client.myUnackedMessages.count(message->myAckedMessageId) > 0)
 		{
-			std::cout << "Acked message " << message->myAckedMessageId << ", received from client " << client.name << "\n";
-
 			// Check here for roundtime and stuff 
 			client.myUnackedMessages.erase(message->myAckedMessageId);
 		}
@@ -440,7 +443,7 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	}
 }
 
-int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip)
+int Server::SendMessageToAllClients(TNP::Message& aMessage, const int aMessageSize, const int aClientToSkip)
 {
 	// Need to check if message size is greater than max size 
 	// if it is it needs to be packed in two messages
@@ -458,15 +461,17 @@ int Server::SendMessageToAllClients(const TNP::Message& aMessage, const int aMes
 	return 0;
 }
 
-int Server::SendMessageToAClient(const TNP::Message& aMessage, const int aMessageSize, const int aClientID)
+int Server::SendMessageToAClient(TNP::Message& aMessage, const int aMessageSize, const int aClientID)
 {
 	ClientData& client = myConnectedClients[aClientID];
 
 	return SendMessage(aMessage, aMessageSize, client);
 }
 
-bool Server::SendMessage(const TNP::Message& aMessage, const int aMessageSize, ClientData& aClient)
+bool Server::SendMessage(TNP::Message& aMessage, const int aMessageSize, ClientData& aClient)
 {
+	aMessage.messageID = aClient.messageCounter++;
+
 #define ACK_MESSAGES
 #ifdef ACK_MESSAGES
 	aClient.myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(aMessage.messageID, { std::make_shared<TNP::Message>(aMessage), aMessageSize }));
@@ -554,6 +559,7 @@ void Server::HandleUnAckedMessages(const float aDT)
 				message.myTimeSinceLastAttempt = 0.0f;
 
 				message.myAttempts++;
+				
 				SendMessageToAClient(*message.myMessage.get(), message.myMesssageSize, clientID);
 			}
 		}

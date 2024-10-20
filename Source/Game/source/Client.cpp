@@ -325,6 +325,17 @@ void Client::RemoveStoredMessages()
 
 }
 
+void Client::StorePlayerMoveMessage()
+{
+	TNP::ClientMovedMessage* message = new TNP::ClientMovedMessage();
+	message->position = myPlayer->GetPosition();
+	message->playerID = myPlayer->GetPID();
+	message->messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
+
+	MessageToSendData messageToSendData(message, sizeof(TNP::ClientMovedMessage));
+
+	myMessagesToSend.push_back(messageToSendData);
+}
 
 void Client::StoreFlowerSpawnMessage()
 {
@@ -361,7 +372,7 @@ void Client::StorePlayerCommands(std::vector<PlayerCommandData>& someCommands)
 		{
 		case ePlayerCommands::Move:
 		{
-
+			StorePlayerMoveMessage();
 			break;
 		}
 		case ePlayerCommands::Interact:
@@ -376,7 +387,6 @@ void Client::StorePlayerCommands(std::vector<PlayerCommandData>& someCommands)
 		}	
 		case ePlayerCommands::DestroyFlower:
 		{
-			std::cout << "Destroy flower \n";
 			StoreDestroyFlowerMessage(someCommands[i].ID);
 			break;
 		}

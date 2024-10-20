@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tge\text\text.h>
+
 namespace Tga
 {
 	class SpriteDrawer;
@@ -21,6 +23,8 @@ public:
 private:
 	const unsigned int myEntityID = 0;
 	Tga::Vector2f myPosition = {};
+
+	Tga::Text myText;
 
 	Tga::SpriteSharedData& mySharedData;
 	Tga::Sprite2DInstanceData mySpriteInstance;

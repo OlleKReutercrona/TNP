@@ -264,7 +264,7 @@ void GameWorld::StartSendMessageThread()
 				// Handle messages to send
 				{
 					// Send Client position
-					myClient.SendPositionMessage();
+					//myClient.SendPositionMessage();
 					myClient.SendStoredMessages();
 
 					myClient.UpdateAckedMessages(Tga::Engine::GetInstance()->GetDeltaTime());

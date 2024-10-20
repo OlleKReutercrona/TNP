@@ -9,6 +9,7 @@ struct PlayerControllerData
 	Tga::Vector2f inputDirection = { 0,0 };
 	bool useAction = false;
 	bool interactAction = false;
+	bool hasMoved = false;
 };
 
 struct InputMapper

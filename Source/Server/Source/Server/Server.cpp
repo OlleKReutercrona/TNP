@@ -572,7 +572,7 @@ void Server::SyncAllEntitiesToJoinedClient(int clientID)
 		{
 			TNP::ServerSpawnFlower outMessage;
 			outMessage.position = entity.myPosition;
-			outMessage.id = myEntityIds;
+			outMessage.id = entity.myId;
 
 			SendMessageToAClient(outMessage, sizeof(outMessage), clientID);
 		}

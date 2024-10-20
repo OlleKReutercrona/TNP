@@ -6,12 +6,15 @@
 void Entity::Init()
 {
 	mySpriteInstance.mySize = mySharedData.myTexture->CalculateTextureSize() / 3.0f;
+	myText.SetText(std::to_string(myEntityID));
+	myText.SetScale(1.2f);
 }
 
 void Entity::SetPosition(const Tga::Vector2f aPosition)
 {
 	myPosition = aPosition;
 	mySpriteInstance.myPosition = aPosition;
+	myText.SetPosition(aPosition);
 }
 
 Tga::Vector2f Entity::GetPosition()
@@ -22,4 +25,5 @@ Tga::Vector2f Entity::GetPosition()
 void Entity::Render(Tga::SpriteDrawer& aSpriteDrawer)
 {
 	aSpriteDrawer.Draw(mySharedData, mySpriteInstance);
+	myText.Render();
 }

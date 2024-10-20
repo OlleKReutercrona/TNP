@@ -97,6 +97,7 @@ public:
 	void RemoveStoredMessages();
 
 	void StoreFlowerSpawnMessage();
+	void StorePlayerMoveMessage();
 
 	void StoreDestroyFlowerMessage(int aID);
 

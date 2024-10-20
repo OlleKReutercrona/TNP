@@ -41,6 +41,13 @@ void PlayerController::Update(const float& aDeltaTime)
 
 	myPlayer->Update(aDeltaTime, myPlayerControllerData);
 
+	if (myPlayerControllerData.hasMoved)
+	{
+		PlayerCommandData pcd;
+		pcd.playerCommand = ePlayerCommands::Move;
+		myPlayer->StoreCommand(pcd);
+	}
+
 	if (myPlayerControllerData.useAction)
 	{
 		myPlayerControllerData.useAction = false;
@@ -91,6 +98,13 @@ void PlayerController::UpdateControllerData()
 	}
 
 	myPlayerControllerData.inputDirection.Normalize();
+
+	myPlayerControllerData.hasMoved = false;
+
+	if (!(myPlayerControllerData.inputDirection.x == 0 && myPlayerControllerData.inputDirection.y == 0))
+	{
+		myPlayerControllerData.hasMoved = true;
+	}
 }
 
 int PlayerController::GetClosetFlowerID()

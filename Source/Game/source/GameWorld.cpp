@@ -26,7 +26,7 @@ GameWorld::~GameWorld()
 	{
 		std::cout << "SHUTDOWN FAILED" << std::endl;
 	}
-	myRecieveMessageThread.join();
+	mySendMessageThread.join();
 }
 
 void GameWorld::Init(Tga::InputManager& aInputManager)
@@ -185,7 +185,7 @@ bool GameWorld::ConnectClient(const float aTimeDelta)
 
 			myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
 
-			StartRecieveMessageThread();
+			StartSendMessageThread();
 			return true;
 		}
 		case C_QUIT: {
@@ -235,9 +235,9 @@ void GameWorld::Render()
 	}
 }
 
-void GameWorld::StartRecieveMessageThread()
+void GameWorld::StartSendMessageThread()
 {
-	myRecieveMessageThread = std::thread([&]
+	mySendMessageThread = std::thread([&]
 		{
 			constexpr int tickRate = 64;
 			constexpr float tickTimeStep = 1.0f / (float)tickRate;
@@ -265,10 +265,7 @@ void GameWorld::StartRecieveMessageThread()
 				{
 					// Send Client position
 					myClient.SendPositionMessage();
-					if (myClient.HasMessagesToSend())
-					{
-						myClient.SendStoredMessages();
-					}
+					myClient.SendStoredMessages();
 
 					myClient.UpdateAckedMessages(Tga::Engine::GetInstance()->GetDeltaTime());
 				}

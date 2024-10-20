@@ -125,6 +125,8 @@ private:
 
 	void HandleUnAckedMessages(const float aDT);
 
+	ClientData* GetClientByPort(const int aPort);
+
 	int myEntityIds = 0;
 	server::ServerEntityFactory myEntityFactory;
 

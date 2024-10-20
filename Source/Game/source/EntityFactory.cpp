@@ -15,10 +15,9 @@ void EntityFactory::Init()
 	mySprites[EntityType::flower].myTexture = engine.GetTextureManager().GetTexture(L"Sprites/Flower.dds");
 }
 
-Entity* EntityFactory::CreateEntity(const EntityType aType, const Tga::Vector2f aPosition)
+Entity* EntityFactory::CreateEntity(const EntityType aType, const unsigned int id, const Tga::Vector2f aPosition)
 {
 	auto& list = myEntities[aType];
-	const unsigned int id = (unsigned int)list.size() + 1;
 
 	list.insert(std::pair<unsigned, Entity*>(id, new Entity(id, mySprites[aType], aPosition)));
 

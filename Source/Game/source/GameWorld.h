@@ -31,7 +31,7 @@ public:
 
 	void Render();
 
-	void StartRecieveMessageThread();
+	void StartSendMessageThread();
 
 private:
 	
@@ -45,7 +45,7 @@ private:
 	MessageThreadData myMessageThreadData;
 
 	std::unordered_map<int, Player*> myOtherClients;
-	std::thread myRecieveMessageThread;
+	std::thread mySendMessageThread;
 
 	bool isRunning = true;
 	Tga::InputManager* myInputManager;

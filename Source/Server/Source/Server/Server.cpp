@@ -412,11 +412,11 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		auto* flower = myEntityFactory.CreateEntity(server::EntityType::flower);
 		flower->myPosition = message.position;
 
+		std::cout << "[Server] Spawning flower [" << flower->myId << "]\n";
+
 		TNP::ServerSpawnFlower outMessage;
 		outMessage.position = message.position;
-		outMessage.id = myEntityIds;
-
-		myEntityIds++;
+		outMessage.id = flower->myId;
 
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
 
@@ -429,6 +429,10 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		message.Deserialize(aMessage);
 
 		myEntityFactory.DestroyEntity(server::EntityType::flower, message.id);
+
+
+		ClientData* client = GetClientByPort(clientPort);
+		std::cout << "[Server] Destroying flower [" << message.id << "] - Client: " << client->name << "\n";
 
 		TNP::ServerDestroyFlower outMessage;
 		outMessage.id = message.id;
@@ -599,6 +603,22 @@ void Server::HandleUnAckedMessages(const float aDT)
 			}
 		}
 	}
+}
+
+ClientData* Server::GetClientByPort(const int aPort)
+{
+	int id = -1;
+	if (myPortToID.count(aPort) > 0)
+	{
+		id = myPortToID.at(aPort);
+	}
+
+	if (myConnectedClients.count(id) > 0)
+	{
+		return &myConnectedClients.at(id);
+	}
+
+	return nullptr;
 }
 
 int Server::Shutdown()

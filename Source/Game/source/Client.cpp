@@ -306,8 +306,12 @@ int Client::SendStoredMessages()
 	for (int i = 0; i < myMessagesToSend.size(); i++)
 	{
 		SendClientMessage(*myMessagesToSend[i].message, myMessagesToSend[i].messageSize);
+
+		delete myMessagesToSend[i].message;
+		myMessagesToSend.erase(myMessagesToSend.begin() + i);
+		--i;
 	}
-	RemoveStoredMessages();
+	//RemoveStoredMessages();
 	return C_SUCCESS;
 }
 
@@ -349,7 +353,7 @@ bool Client::HasMessagesToSend()
 	return !myMessagesToSend.empty();
 }
 
-void Client::StorePlayerCommands(std::vector<PlayerCommandData> someCommands)
+void Client::StorePlayerCommands(std::vector<PlayerCommandData>& someCommands)
 {
 	for (int i = 0; i < someCommands.size(); i++)
 	{
@@ -372,6 +376,7 @@ void Client::StorePlayerCommands(std::vector<PlayerCommandData> someCommands)
 		}	
 		case ePlayerCommands::DestroyFlower:
 		{
+			std::cout << "Destroy flower \n";
 			StoreDestroyFlowerMessage(someCommands[i].ID);
 			break;
 		}
@@ -590,7 +595,7 @@ int Client::HandleRecievedMessage()
 	{
 		TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(mySocketBuffer);
 		
-		myEntityFactory->CreateEntity(EntityType::flower, msg->position);
+		myEntityFactory->CreateEntity(EntityType::flower, msg->id, msg->position);
 		
 		break;
 	}

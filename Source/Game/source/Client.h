@@ -102,7 +102,7 @@ public:
 
 	bool HasMessagesToSend();
 
-	void StorePlayerCommands(std::vector<PlayerCommandData> someCommands);
+	void StorePlayerCommands(std::vector<PlayerCommandData>& someCommands);
 
 	const inline bool IsConnected()
 	{

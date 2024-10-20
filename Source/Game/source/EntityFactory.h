@@ -23,7 +23,7 @@ public:
 
 	void Init();
 
-	Entity* CreateEntity(const EntityType aType, const Tga::Vector2f aPosition = {0.0f ,0.0f});
+	Entity* CreateEntity(const EntityType aType, const unsigned int id, const Tga::Vector2f aPosition = {0.0f ,0.0f});
 	Entity* GetEntity(const EntityType aType, const unsigned int anID);
 	bool DeleteEntity(const EntityType aType, const unsigned int anID);
 

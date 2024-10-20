@@ -37,7 +37,7 @@ void GameWorld::Init(Tga::InputManager& aInputManager)
 	myEntityFactory.Init();
 	myPlayerManager.Init();
 
-	myClient.Init(myPlayerManager, myEntityFactory);
+	myClient.Init(myPlayerManager, myEntityFactory, myStatManager);
 
 	if (C_FAIL(myClient.Start()))
 	{
@@ -119,6 +119,7 @@ void GameWorld::Update(float aTimeDelta)
 	// Input 
 	// Sends messages to server for verification
 
+	myStatManager.Update(aTimeDelta);
 }
 
 bool GameWorld::ConnectClient(const float aTimeDelta)
@@ -224,6 +225,7 @@ void GameWorld::Render()
 			myDisplayText->Render();
 		}
 	}
+	myStatManager.DisplayDebugStats();
 
 	if (!_RENDERDEBUG)
 		return;
@@ -233,6 +235,7 @@ void GameWorld::Render()
 		//myPlayer->DebugRender(debugDrawer);
 		myPlayerManager.DebugRender(debugDrawer);
 	}
+
 }
 
 void GameWorld::StartSendMessageThread()

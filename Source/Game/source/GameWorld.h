@@ -2,6 +2,7 @@
 #include "Client.h"
 #include "PlayerManager.h"
 #include "EntityFactory.h"
+#include "NetworkDebugStatManager.h"
 
 class PlayerController;
 class Player;
@@ -34,7 +35,8 @@ public:
 	void StartSendMessageThread();
 
 private:
-	
+	TNP::NetworkDebugStatManager myStatManager;
+
 	EntityFactory myEntityFactory;
 	PlayerManager myPlayerManager;
 

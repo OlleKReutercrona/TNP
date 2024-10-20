@@ -19,6 +19,7 @@ namespace TNP
 		clientDestoryFlower,				// Sent from client to destroy flower on Server
 
 		ackMessage,
+		echoMessage,
 
 		//Server
 		serverConnectedClientData,
@@ -34,6 +35,28 @@ namespace TNP
 
 	};
 
+	inline static const char* MessageTypeNames[]
+	{
+		"error",
+		"clientJoin",
+		"clientDisconnect",
+		"clientMessage",
+		"clientSendPosition",
+		"clientSpawnFlower",
+		"clientDestoryFlower",
+		"ackMessage",
+		"echoMessage",
+		"serverConnectedClientData",
+		"serverClientJoined",
+		"serverClientDisconnected",
+		"serverClientMessage",
+		"serverBundle",
+		"serverSpawnFlower",
+		"serverDestroyFlower",
+		"updateClients",
+		"count"
+	};
+
 	// ___int to char___
 	// int i = 65
 	// char c(i)
@@ -47,10 +70,27 @@ namespace TNP
 	struct Message
 	{
 		Message(const MessageType aType) : type(aType) {}
+		Message(const MessageType aType, const int anID) : type(aType),messageID(anID) {}
+		Message(const Message& aMessage) : type(aMessage.type), messageID(aMessage.messageID) {}
+		Message() : type(TNP::MessageType::error) {};
+
+		//Message operator=(const Message& aMessage)
+		//{
+		//	std::swap(type, aMessage.type);
+
+		//	Message msg(aMessage.type);
+		//	msg.messageID = aMessage.messageID;
+		//	return msg;
+		//}
 
 	public:
-		const MessageType type;
+		MessageType type;
 		int messageID = -1;
+	};
+
+	struct EchoMessage : public Message
+	{
+		EchoMessage() : Message(MessageType::echoMessage) {}
 	};
 
 #pragma region ClientMessages

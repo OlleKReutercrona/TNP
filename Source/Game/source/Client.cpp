@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "PlayerManager.h"
 #include "EntityFactory.h"
+#include "NetworkDebugStatManager.h"
 // Allows us to gracefully exit the program loop.
 std::atomic<bool> isRunning = true;
 std::atomic<bool> hasMessage = false;
@@ -15,8 +16,9 @@ Client::~Client()
 	Shutdown();
 }
 
-void Client::Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory)
+void Client::Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory, TNP::NetworkDebugStatManager& aStatManager)
 {
+	myStatManager = &aStatManager;
 	myPlayerManager = &aPlayerManager;
 	myEntityFactory = &aEntityFactory;
 }
@@ -94,6 +96,7 @@ int Client::Connect()
 		if (messageStr.size() <= USERNAME_MAX_LENGTH)
 		{
 			TNP::ClientJoin message;
+			message.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientJoin));
 			//message.username = { 0 };
 
 			strcpy_s(message.username, USERNAME_MAX_LENGTH, messageStr.c_str());
@@ -171,7 +174,7 @@ int Client::Connect(const std::string& aUsername)
 	if (aUsername.size() <= USERNAME_MAX_LENGTH)
 	{
 		TNP::ClientJoin message;
-		//message.username = { 0 };
+		message.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientJoin));
 
 		strcpy_s(message.username, USERNAME_MAX_LENGTH, aUsername.c_str());
 
@@ -212,6 +215,7 @@ int Client::Run()
 			TNP::ClientMessage message;
 			memcpy(message.message, myMessage, MESSAGE_MAX_SIZE);
 			//message.message = myMessage;
+			message.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientMessage));
 
 			if (C_FAIL(SendClientMessage(message, sizeof(message))))
 			{
@@ -244,6 +248,7 @@ int Client::Run()
 	}
 
 	TNP::ClientDisconnect discMessage;
+	discMessage.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientDisconnect));
 
 	if (SendClientMessage(discMessage, sizeof(discMessage)))
 	{
@@ -303,6 +308,8 @@ int Client::SendPositionMessage()
 
 int Client::SendStoredMessages()
 {
+	std::lock_guard<std::mutex> lock(mySendMessagesMutex);
+
 	for (int i = 0; i < myMessagesToSend.size(); i++)
 	{
 		SendClientMessage(*myMessagesToSend[i].message, myMessagesToSend[i].messageSize);
@@ -339,9 +346,13 @@ void Client::StorePlayerMoveMessage()
 
 void Client::StoreFlowerSpawnMessage()
 {
+	std::lock_guard<std::mutex> lock(mySendMessagesMutex);
+
 	TNP::ClientSpawnFlower* message = new TNP::ClientSpawnFlower();
 	message->position = myPlayer->GetPosition();
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
+
+	myStatManager->StoreMessage(*message, sizeof(*message));
 
 	MessageToSendData messageToSendData(message, sizeof(TNP::ClientSpawnFlower));
 
@@ -350,9 +361,13 @@ void Client::StoreFlowerSpawnMessage()
 
 void Client::StoreDestroyFlowerMessage(int aID)
 {
+	std::lock_guard<std::mutex> lock(mySendMessagesMutex);
+
 	TNP::ClientDestroyFlower* message = new TNP::ClientDestroyFlower();
 	message->id = aID;
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientDestoryFlower);
+
+	myStatManager->StoreMessage(*message, sizeof(*message));
 
 	MessageToSendData messageToSendData(message, sizeof(TNP::ClientDestroyFlower));
 
@@ -422,6 +437,14 @@ int Client::HandleRecievedMessage()
 
 	TNP::Message* baseMessage = (TNP::Message*)mySocketBuffer;
 
+	// If message is already acked, don't do it again
+	if (myAckedMessages.count(baseMessage->messageID) > 0)
+	{
+		return 0;
+	}
+
+	int size = -1;
+
 	switch (type)
 	{
 	case TNP::MessageType::error:
@@ -436,6 +459,7 @@ int Client::HandleRecievedMessage()
 		msg->id;
 		msg->username;
 
+		size = sizeof(*msg);
 
 		const int clientID = msg->id;
 
@@ -455,6 +479,7 @@ int Client::HandleRecievedMessage()
 	{
 		TNP::ServerClientDisconnected* msg = (TNP::ServerClientDisconnected*)mySocketBuffer;
 
+		size = sizeof(*msg);
 		const int clientID = msg->id;
 
 		std::cout << "Client " << myConnectedClients[clientID] << " disconnected the server!" << std::endl;
@@ -467,6 +492,7 @@ int Client::HandleRecievedMessage()
 	{
 		TNP::ServerClientMessage* msg = (TNP::ServerClientMessage*)mySocketBuffer;
 
+		size = sizeof(*msg);
 		std::string printStr = "[" + myConnectedClients[msg->id] + "] " + msg->message;
 
 		std::cout << printStr << std::endl;
@@ -476,6 +502,7 @@ int Client::HandleRecievedMessage()
 	{
 		TNP::ServerConnectedClientData* msg = (TNP::ServerConnectedClientData*)mySocketBuffer;
 
+		size = sizeof(*msg);
 
 		// flag game that connection was successful 
 		isConnected = true;
@@ -564,6 +591,7 @@ int Client::HandleRecievedMessage()
 
 		TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)(mySocketBuffer);
 
+		size = sizeof(*msg);
 		TNP::UpdateClientsMessage::UnpackedUpdateClientMessage deserMsg(*msg);
 
 		for (int i = 0; i < deserMsg.numberOfClients; i++)
@@ -604,7 +632,8 @@ int Client::HandleRecievedMessage()
 	case TNP::MessageType::serverSpawnFlower:
 	{
 		TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(mySocketBuffer);
-		
+
+		size = sizeof(*msg);
 		myEntityFactory->CreateEntity(EntityType::flower, msg->id, msg->position);
 		
 		break;
@@ -612,7 +641,8 @@ int Client::HandleRecievedMessage()
 	case TNP::MessageType::serverDestroyFlower:
 	{
 		TNP::ServerDestroyFlower* msg = (TNP::ServerDestroyFlower*)(mySocketBuffer);
-		
+
+		size = sizeof(*msg);
 		myEntityFactory->DeleteEntity(EntityType::flower, msg->id);
 		
 		break;
@@ -621,6 +651,8 @@ int Client::HandleRecievedMessage()
 		break;
 	}
 
+	myStatManager->StoreReceivedMessage(*baseMessage, size);
+
 	SendAckMessage(*baseMessage);
 
 	return C_SUCCESS;
@@ -628,16 +660,12 @@ int Client::HandleRecievedMessage()
 
 void Client::SendAckMessage(const TNP::Message& aMessage)
 {
-	if (myAckedMessages.count(aMessage.messageID) > 0)
-	{
-		return;
-	}
-
 	std::lock_guard<std::mutex> guard(myAckMutex);
 
 	myAckedMessages.insert(std::pair<unsigned int, AckedMessage>(aMessage.messageID, { aMessage.messageID }));
 
 	TNP::AckMessage ackMessage(aMessage.messageID);
+	ackMessage.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::ackMessage));
 
 	SendClientMessage(ackMessage, sizeof(TNP::AckMessage));
 }

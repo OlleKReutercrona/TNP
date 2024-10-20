@@ -32,6 +32,7 @@ class EntityFactory;
 namespace TNP
 {
 	struct Message;
+	class NetworkDebugStatManager;
 }
 
 
@@ -62,7 +63,7 @@ struct MessageCounter
 	{
 		assert(anID >= 0 && anID < myMessages.size() && "Index out of range");
 
-		return myMessages[anID];
+		return myMessages[anID]++;
 	}
 
 	std::vector<int> myMessages;
@@ -76,7 +77,7 @@ public:
 	Client() = default;
 	~Client();
 
-	void Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory);
+	void Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory, TNP::NetworkDebugStatManager& aStatManager);
 
 	int Start();
 	int Connect();
@@ -123,7 +124,7 @@ private:
 
 	void SendAckMessage(const TNP::Message& aMessage);
 
-
+	TNP::NetworkDebugStatManager* myStatManager;
 	PlayerManager* myPlayerManager;
 	EntityFactory* myEntityFactory;
 
@@ -151,8 +152,11 @@ private:
 	char myMessage[NETMESSAGE_SIZE]{ 0 };
 	
 	std::mutex myAckMutex;
+	std::mutex mySendMessagesMutex;
 
 	bool hasJoined = false;
 	bool isConnected = false;
+
+	unsigned int myMessageId = 0;
 
 };

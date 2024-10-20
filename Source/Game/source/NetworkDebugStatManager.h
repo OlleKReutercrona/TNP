@@ -21,6 +21,12 @@ namespace TNP
 		Message message;
 		int messageSize = 0;
 		std::chrono::high_resolution_clock::time_point timeSent = {};
+		bool isMissing = false;
+	};
+
+	struct PingMessage : public DebugMessage
+	{
+		std::chrono::duration<double> ping = {};
 	};
 
 	struct NetworkMessageStats
@@ -33,7 +39,7 @@ namespace TNP
 
 	struct NetworkStats
 	{
-		std::chrono::high_resolution_clock::duration RTT;
+		double RTT;
 		float sentDPS = 0.0f;
 		float receivedDPS = 0.0f; 
 		int sentMessages = 0;
@@ -53,11 +59,20 @@ namespace TNP
 
 		void StoreMessage(const TNP::Message& aMessage, const int aSize);
 		void StoreReceivedMessage(const TNP::Message& aMessage, const int aSize);
-
+		void StorePingMessage(const TNP::Message& aMessage);
+		void ReceivePingMessage(const int aMessageID);
+		void RegisterMessageAsPacketLoss(const int aMessageID);
+		
 		void DisplayDebugStats();
 	private:
+		int UnpackReceivedMessages();
+		int UnpackSentMessages();
+		double UnpackPingMessages();
+
 		std::vector<DebugMessage> myReceivedMessages;
 		std::map<int, DebugMessage> mySentMessages;
+		std::map<int, DebugMessage> myUnackedPingMessages;
+		std::map<int, PingMessage> myAckedPingMessages;
 		NetworkStats myStats;
 
 		int myTimeFilter = 1;

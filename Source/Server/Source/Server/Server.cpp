@@ -212,6 +212,7 @@ int Server::Run()
 			CheckForClientDisconnect();
 
 			HandleUnAckedMessages(deltaTime);
+			UpdateAckedMessages(deltaTime);
 		}
 
 	}
@@ -418,6 +419,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		outMessage.position = message.position;
 		outMessage.id = flower->myId;
 
+		ClientData* client = GetClientByPort(clientPort);
+		SendAckMessage(*client, message.messageID);
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
 
 		break;
@@ -436,12 +439,21 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		TNP::ServerDestroyFlower outMessage;
 		outMessage.id = message.id;
-
+		SendAckMessage(*client, message.messageID);
 		SendMessageToAllClients(outMessage, sizeof(outMessage));
 
 		break;
 	}
 	case TNP::MessageType::ackMessage:
+	{
+		TNP::AckMessage* message = (TNP::AckMessage*)(aMessage);
+
+		ClientData* client = GetClientByPort(clientPort);
+		SendAckMessage(*client, message->messageID);
+
+		break;
+	}
+	case TNP::MessageType::echoMessage:
 	{
 		TNP::AckMessage* message = (TNP::AckMessage*)(aMessage);
 
@@ -511,6 +523,34 @@ bool Server::SendMessage(TNP::Message& aMessage, const int aMessageSize, ClientD
 		return false;
 	}
 	return true;
+}
+
+void Server::SendAckMessage(ClientData& aClient, const int aMessageID)
+{
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
+	myAckedMessages.insert(std::pair<unsigned int, AckedMessage>(aMessageID, { aMessageID }));
+
+	TNP::AckMessage message(aMessageID);
+
+	SendMessageToAClient(message, sizeof(message), aClient.myServerID);
+}
+
+void Server::UpdateAckedMessages(const float aDT)
+{
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
+	for (auto it = myAckedMessages.begin(); it != myAckedMessages.end();)
+	{
+		it->second.timeSinceAck += aDT;
+		if (it->second.timeSinceAck >= myAckMessageSaveTime)
+		{
+			it = myAckedMessages.erase(it);
+			continue;
+		}
+
+		++it;
+	}
 }
 
 void Server::SyncClients()

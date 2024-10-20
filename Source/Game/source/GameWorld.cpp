@@ -26,7 +26,6 @@ GameWorld::~GameWorld()
 	{
 		std::cout << "SHUTDOWN FAILED" << std::endl;
 	}
-	mySendMessageThread.join();
 }
 
 void GameWorld::Init(Tga::InputManager& aInputManager)
@@ -63,23 +62,6 @@ void GameWorld::Init(Tga::InputManager& aInputManager)
 		myInputText->SetText("");
 		myInputText->SetPosition({ myResolution.x * 0.5f, myResolution.y * 0.5f });
 	}
-
-
-
-	//Message Recieve Thread
-
-
-
-
-	//if (C_FAIL(myClient.Connect()))
-	//{
-	//	std::cout << "CONNECT FAILED" << std::endl;
-	//	isRunning = false;
-	//	PostQuitMessage(0);
-	//	return;
-	//}
-
-	//myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
 }
 
 void GameWorld::Update(float aTimeDelta)
@@ -88,17 +70,6 @@ void GameWorld::Update(float aTimeDelta)
 	{
 		return;
 	}
-
-	//if (!myClient.GetHasJoined())
-	//{
-	//	// LOGIN LOGIK
-	//}
-	//else
-	//{
-	//	// GAMEPLAY LOGIC
-	//}
-
-
 	// SKICKA MEDDELANDEN
 	myController->Update(aTimeDelta);
 	if (myPlayerManager.GetLocalPlayer()->HasCommands())
@@ -108,13 +79,8 @@ void GameWorld::Update(float aTimeDelta)
 	}
 	
 
-	//myClient.SendPositionMessage();
-
-
-
 	// Recieve message from server THREAD
-	// handle
-	myClient.RecieveMessageFromServer();
+	myClient.Run(aTimeDelta);
 
 	// Input 
 	// Sends messages to server for verification
@@ -185,8 +151,6 @@ bool GameWorld::ConnectClient(const float aTimeDelta)
 
 
 			myController = new PlayerController(myPlayerManager.GetLocalPlayer(), myEntityFactory);
-
-			StartSendMessageThread();
 			return true;
 		}
 		case C_QUIT: {
@@ -215,7 +179,6 @@ void GameWorld::Render()
 	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	// Game update
 	{
-		//myPlayer->Render(spriteDrawer);
 		myEntityFactory.Render(spriteDrawer);
 		myPlayerManager.Render(spriteDrawer);
 
@@ -232,60 +195,7 @@ void GameWorld::Render()
 
 	Tga::DebugDrawer& debugDrawer(engine.GetDebugDrawer());
 	{
-		//myPlayer->DebugRender(debugDrawer);
 		myPlayerManager.DebugRender(debugDrawer);
 	}
 
-}
-
-void GameWorld::StartSendMessageThread()
-{
-	mySendMessageThread = std::thread([&]
-		{
-			constexpr int tickRate = 64;
-			constexpr float tickTimeStep = 1.0f / (float)tickRate;
-
-			float timeSinceLastTick = 0.0f;
-
-			// very basic async input setup... we read input on a different thread
-			while (isRunning)
-			{
-
-				// cant check deltatime here since this while loop often time will be faster than the Engine
-				// Therefor we need to check our own time in this loop
-				// Todo -> check our own time.
-				timeSinceLastTick += Tga::Engine::GetInstance()->GetDeltaTime();
-
-				if (!myClient.HasJoined())
-					continue;
-
-				// Return if 
-				if (timeSinceLastTick < tickTimeStep) { continue; }
-
-				timeSinceLastTick = 0.0f;
-
-				// Handle messages to send
-				{
-					// Send Client position
-					//myClient.SendPositionMessage();
-					myClient.SendStoredMessages();
-
-					myClient.UpdateAckedMessages(Tga::Engine::GetInstance()->GetDeltaTime());
-				}
-
-
-				// Handle recieved messages
-				{
-
-				}
-
-
-				// Does buffer have data?
-				//Yes?
-					//Recieve Message
-				//No?
-					//continue;
-			}
-			std::cout << "Recieve Message Thread Done!" << std::endl;
-		});
 }

@@ -31,9 +31,6 @@ public:
 	bool ConnectClient(float aTimeDelta);
 
 	void Render();
-
-	void StartSendMessageThread();
-
 private:
 	TNP::NetworkDebugStatManager myStatManager;
 
@@ -47,7 +44,6 @@ private:
 	MessageThreadData myMessageThreadData;
 
 	std::unordered_map<int, Player*> myOtherClients;
-	std::thread mySendMessageThread;
 
 	bool isRunning = true;
 	Tga::InputManager* myInputManager;

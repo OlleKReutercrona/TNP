@@ -6,6 +6,7 @@
 #include "Network-Shared.h"
 #include "PlayerCommands.h"
 #include "Message.h"
+#include "UnackedMessage.h"
 
 #include <unordered_map>
 #include <string>
@@ -45,15 +46,6 @@ struct MessageToSendData
 	int messageSize = 0;
 };
 
-
-struct AckedMessage
-{
-	AckedMessage(const int aMessageID) : messageID(aMessageID) {}
-
-	const int messageID = -1;
-	float timeSinceAck = 0.0f;
-};
-
 // This is jank and should maybe be taken care of by server but probably not
 struct MessageCounter
 {
@@ -80,11 +72,9 @@ public:
 	void Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory, TNP::NetworkDebugStatManager& aStatManager);
 
 	int Start();
-	int Connect();
 	int Connect(const std::string& aUsername);
 
-	int StartInputThread();
-	int Run();
+	void Run(const float aDT);
 
 	int RecieveMessageFromServer();
 
@@ -119,10 +109,12 @@ public:
 	void UpdateAckedMessages(const float aDT);
 private:
 	int SendClientMessage(const TNP::Message& aMSG, const int aSize);
-
 	int HandleRecievedMessage();
-
+	void HandleUnackedMessages(const float aDT);
 	void SendAckMessage(const TNP::Message& aMessage);
+	void SendPingMessage();
+
+	void SendMessageThread();
 
 	TNP::NetworkDebugStatManager* myStatManager;
 	PlayerManager* myPlayerManager;
@@ -132,14 +124,19 @@ private:
 
 	std::string myClientName = "xXx_DragonSlayer_xXx";
 
-	std::thread myInputThread;
+	std::thread mySendMessageThread;
 
 	std::unordered_map<int, std::string> myConnectedClients;
 
+	// Ack
+	std::map<unsigned int, UnAckedMessage> myUnackedMessages = {};
+	std::map<unsigned int, AckedMessage> myAckedMessages;
+	const double myUnAckedMessageRetryTime = 0.2f;
+	const float myAckMessageSaveTime = 1.0f;
+	const float myAckTryAgainTime = 3.0f;
+
 	std::vector<MessageToSendData> myMessagesToSend;
 
-	const float myAckMessageSaveTime = 1.0f;
-	std::map<unsigned int, AckedMessage> myAckedMessages;
 
 	// Networking
 	SOCKET myUDPSocket;

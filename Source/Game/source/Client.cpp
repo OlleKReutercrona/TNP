@@ -80,86 +80,6 @@ int Client::Start()
 	return C_SUCCESS;
 }
 
-int Client::Connect()
-{
-	bool hasConnected = false;
-
-	while (!hasConnected)
-	{
-		std::cout << "Enter a username: ";
-		while (!hasMessage)
-		{
-			std::cin.getline(myMessage, NETMESSAGE_SIZE);
-			hasMessage = true;
-		}
-		std::string messageStr(myMessage);
-		if (messageStr.size() <= USERNAME_MAX_LENGTH)
-		{
-			TNP::ClientJoin message;
-			message.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientJoin));
-			//message.username = { 0 };
-
-			strcpy_s(message.username, USERNAME_MAX_LENGTH, messageStr.c_str());
-
-			myClientName = messageStr;
-
-			if (C_FAIL(SendClientMessage(message, sizeof(message))))
-			{
-				return C_CONNECTION_FAILED;
-			}
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(333));
-
-			unsigned int counter = 0;
-			const unsigned int maxCount = 20;
-
-			while (hasConnected == false)
-			{
-				if (counter >= maxCount)
-				{
-					std::cout << "FAILED TO CONNECT TO SERVER, PLZ RESTART PROGRAM AND RETRY!\n";
-					return C_CONNECTION_FAILED;
-				}
-				RecieveMessageFromServer();
-
-				if (hasJoined)
-				{
-					hasConnected = true;
-					break;
-				}
-
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-				std::cout << "Failed to connect to server, retrying...\n";
-
-				if (C_FAIL(SendClientMessage(message, sizeof(message))))
-				{
-					return C_CONNECTION_FAILED;
-				}
-				counter++;
-			}
-
-
-			/*
-				To do in future here.
-				The message will send even if the server is not responding leaving the client to think that it is connected.
-				We should wait until server has sent an ACK message before we try to send other messages to the server.
-				- Olle
-			*/
-			hasConnected = true;
-			std::cout << "\n\n\nConnected to server!" << std::endl;
-			ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
-			hasMessage = false;
-		}
-		else
-		{
-			std::cout << "\nUsername to long. (It has to be under 32 characters)" << std::endl;
-			hasMessage = false;
-		}
-	}
-	return C_SUCCESS;
-}
-
 int Client::Connect(const std::string& aUsername)
 {
 	if (isConnected)
@@ -167,6 +87,9 @@ int Client::Connect(const std::string& aUsername)
 		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
 
 		hasJoined = true;
+
+		SendMessageThread();
+
 		return C_SUCCESS;
 	}
 
@@ -195,67 +118,21 @@ int Client::Connect(const std::string& aUsername)
 	}
 }
 
-int Client::Run()
+
+void Client::Run(const float aDT)
 {
-	std::cout << "Please enter a message (write quit to quit): \n";
+	RecieveMessageFromServer();
 
-	while (isRunning)
+	constexpr int timeStep = 128;
+	static float time = 0.0f;
+	time += aDT;
+
+	if (time > 1.0f / timeStep)
 	{
-		if (hasMessage)
-		{
-			if (strcmp(myMessage, "quit") == 0)
-			{
-				std::cout << "You have disconnected!" << std::endl;
-				std::cout << "Press any key to close program." << std::endl;
+		time = 0.0f;
 
-				isRunning = false;
-				break;
-			}
-
-			TNP::ClientMessage message;
-			memcpy(message.message, myMessage, MESSAGE_MAX_SIZE);
-			//message.message = myMessage;
-			message.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientMessage));
-
-			if (C_FAIL(SendClientMessage(message, sizeof(message))))
-			{
-				std::cout << "Failed to send message" << std::endl;
-
-				isRunning = false;
-				break;
-			}
-
-			hasMessage = false;
-		}
-
-		ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
-		int addrServerSize = sizeof(myServerAddress);
-		const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&myServerAddress, &addrServerSize);
-
-		if (recv_len == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
-		{
-			std::cout << "Failed receiving data from udpSocket." << std::endl;
-			std::cout << "Error: " << WSAGetLastError() << std::endl;
-		}
-
-		if (recv_len > 0)
-		{
-			if (C_FAIL(HandleRecievedMessage()))
-			{
-				std::cout << "Fail logged." << std::endl;
-			}
-		}
+		SendPingMessage();
 	}
-
-	TNP::ClientDisconnect discMessage;
-	discMessage.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::clientDisconnect));
-
-	if (SendClientMessage(discMessage, sizeof(discMessage)))
-	{
-		return EXIT_FAILURE;
-	}
-
-	return C_QUIT;
 }
 
 int Client::RecieveMessageFromServer()
@@ -286,6 +163,7 @@ int Client::Shutdown()
 	closesocket(myUDPSocket);
 	WSACleanup();
 	isRunning = false;
+	mySendMessageThread.join();
 
 	std::cout << "Client has shutdown\n";
 
@@ -354,6 +232,8 @@ void Client::StoreFlowerSpawnMessage()
 	message->position = myPlayer->GetPosition();
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientSpawnFlower);
 
+	myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(message->messageID, { std::make_shared<TNP::Message>(*message), sizeof(*message) }));
+
 	myStatManager->StoreMessage(*message, sizeof(*message));
 
 	MessageToSendData messageToSendData(message, sizeof(TNP::ClientSpawnFlower));
@@ -368,6 +248,8 @@ void Client::StoreDestroyFlowerMessage(int aID)
 	TNP::ClientDestroyFlower* message = new TNP::ClientDestroyFlower();
 	message->id = aID;
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientDestoryFlower);
+
+	myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(message->messageID, { std::make_shared<TNP::Message>(*message), sizeof(*message)}));
 
 	myStatManager->StoreMessage(*message, sizeof(*message));
 
@@ -619,6 +501,30 @@ int Client::HandleRecievedMessage()
 		
 		break;
 	}
+	case TNP::MessageType::ackMessage:
+	{
+		std::lock_guard<std::mutex> guard(myAckMutex);
+
+		TNP::AckMessage* message = (TNP::AckMessage*)(mySocketBuffer);
+
+		if (myUnackedMessages.count(message->myAckedMessageId) > 0)
+		{
+			// Check here for roundtime and stuff 
+			myUnackedMessages.erase(message->myAckedMessageId);
+		}
+
+		myStatManager->ReceivePingMessage(message->myAckedMessageId);
+
+		return C_SUCCESS;
+	}
+	case TNP::MessageType::echoMessage:
+	{
+		TNP::EchoMessage* message = (TNP::EchoMessage*)(mySocketBuffer);
+
+		myStatManager->ReceivePingMessage(message->messageID);
+
+		return C_SUCCESS;
+	}
 	default:
 		break;
 	}
@@ -628,6 +534,44 @@ int Client::HandleRecievedMessage()
 	SendAckMessage(*baseMessage);
 
 	return C_SUCCESS;
+}
+
+void Client::HandleUnackedMessages(const float aDT)
+{
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
+	for (auto it = myUnackedMessages.begin(); it != myUnackedMessages.end();)
+	//for (auto& [index, message] : myUnackedMessages)
+	{
+		auto& message = it->second;
+
+		message.myTimeSinceFirstAttempt += aDT;
+		message.myTimeSinceLastAttempt += aDT;
+
+		if (message.myTimeSinceFirstAttempt < myUnAckedMessageRetryTime)
+		{
+			continue;
+		}
+
+		if (message.myTimeSinceFirstAttempt >= myAckTryAgainTime)
+		{
+			// Register packet loss now
+			myStatManager->RegisterMessageAsPacketLoss(message.myMessage->messageID);
+			it = myUnackedMessages.erase(it);
+			continue;
+		}
+
+		if (message.myTimeSinceLastAttempt > myUnAckedMessageRetryTime)
+		{
+			message.myTimeSinceLastAttempt = 0.0f;
+
+			message.myAttempts++;
+
+			SendClientMessage(*message.myMessage.get(), message.myMesssageSize);
+		}
+
+		++it;
+	}
 }
 
 void Client::SendAckMessage(const TNP::Message& aMessage)
@@ -640,6 +584,54 @@ void Client::SendAckMessage(const TNP::Message& aMessage)
 	ackMessage.messageID = myMessageCounter(static_cast<int>(TNP::MessageType::ackMessage));
 
 	SendClientMessage(ackMessage, sizeof(TNP::AckMessage));
+}
+
+void Client::SendPingMessage()
+{
+	std::lock_guard<std::mutex> lock(mySendMessagesMutex);
+
+	TNP::EchoMessage* message = new TNP::EchoMessage();
+	message->messageID = myMessageCounter(static_cast<int>(TNP::MessageType::echoMessage));
+
+	myStatManager->StorePingMessage(*message);
+
+	MessageToSendData messageToSendData(message, sizeof(TNP::EchoMessage));
+
+	myMessagesToSend.push_back(messageToSendData);
+}
+
+void Client::SendMessageThread()
+{
+	mySendMessageThread = std::thread([&]
+	{
+		constexpr int tickRate = 64;
+		constexpr float tickTimeStep = 1.0f / (float)tickRate;
+
+		float timeSinceLastTick = 0.0f;
+
+		// very basic async input setup... we read input on a different thread
+		while (isRunning)
+		{
+			const float deltaTime = Tga::Engine::GetInstance()->GetDeltaTime();
+			timeSinceLastTick += deltaTime;
+
+			if (!HasJoined())
+				continue;
+
+			if (timeSinceLastTick < tickTimeStep) { continue; }
+
+			timeSinceLastTick = 0.0f;
+
+			// Handle messages to send
+			{
+				SendStoredMessages();
+
+				HandleUnackedMessages(deltaTime);
+				UpdateAckedMessages(deltaTime);
+			}
+		}
+		std::cout << "Recieve Message Thread Done!" << std::endl;
+	});
 }
 
 void Client::UpdateAckedMessages(const float aDT)

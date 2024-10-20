@@ -339,6 +339,8 @@ void Client::StorePlayerMoveMessage()
 	message->playerID = myPlayer->GetPID();
 	message->messageID = myMessageCounter((int)TNP::MessageType::clientSendPosition);
 
+	myStatManager->StoreMessage(*message, sizeof(*message));
+
 	MessageToSendData messageToSendData(message, sizeof(TNP::ClientMovedMessage));
 
 	myMessagesToSend.push_back(messageToSendData);
@@ -583,12 +585,6 @@ int Client::HandleRecievedMessage()
 	}
 	case TNP::MessageType::updateClients:
 	{
-		//TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)mySocketBuffer;
-
-		// This needs to sync with all other clients so client should probably not recieve messages
-		// Todo -> create a networkHandler or manager or whatever that recieves messages and parses 
-		// them out to the correct reciever -- Olle
-
 		TNP::UpdateClientsMessage* msg = (TNP::UpdateClientsMessage*)(mySocketBuffer);
 
 		size = sizeof(*msg);
@@ -603,30 +599,6 @@ int Client::HandleRecievedMessage()
 
 			myPlayerManager->UpdatePlayer(deserMsg.clients[i].playerID, { deserMsg.clients[i].position });
 		}
-
-		//char* ptr = msg->data;
-
-		//for (int i = 0; i < msg->numberOfClients; i++)
-		//{
-
-		//	unsigned int id = 0;
-		//	memcpy(&id, ptr, sizeof(unsigned int));
-		//	ptr += sizeof(unsigned int);
-
-		//	if (id == (unsigned int)myPlayer->GetPID())
-		//	{
-		//		ptr += sizeof(Tga::Vector2f);
-		//		continue;
-		//	}
-
-		//	Tga::Vector2f pos;
-		//	memcpy(&pos, ptr, sizeof(Tga::Vector2f));
-		//	ptr += sizeof(Tga::Vector2f);
-
-		//	myPlayerManager->UpdatePlayer(id, { pos });
-		//}
-
-
 		break;
 	}
 	case TNP::MessageType::serverSpawnFlower:

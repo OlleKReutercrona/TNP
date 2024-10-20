@@ -34,8 +34,8 @@ namespace TNP
 	struct NetworkStats
 	{
 		std::chrono::high_resolution_clock::duration RTT;
-		int sentDPS = 0;
-		int receivedDPS = 0; 
+		float sentDPS = 0.0f;
+		float receivedDPS = 0.0f; 
 		int sentMessages = 0;
 		int receivedMessages = 0;
 		int packetLoss = 0;
@@ -61,7 +61,7 @@ namespace TNP
 		NetworkStats myStats;
 
 		int myTimeFilter = 1;
-		int myMessageSaveTime = 10;
+		float myMessageSaveTime = 10.0f;
 
 	};
 }

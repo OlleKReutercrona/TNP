@@ -9,20 +9,12 @@
 PlayerController::PlayerController(Player* aPlayer, EntityFactory& anEntityFactory)
 {
 	myPlayer = aPlayer;
-	if (myPlayer->GetIsPlayerOne())
-	{
-		myInputMapper.up = 0x57;
-		myInputMapper.down = 0x53;
-		myInputMapper.left = 0x41;
-		myInputMapper.right = 0x44;
-	}
-	else
-	{
-		myInputMapper.up = 0x26;
-		myInputMapper.down = 0x28;
-		myInputMapper.left = 0x25;
-		myInputMapper.right = 0x27;
-	}
+
+	myInputMapper.up = 0x57;
+	myInputMapper.down = 0x53;
+	myInputMapper.left = 0x41;
+	myInputMapper.right = 0x44;
+
 
 	myEntityFactory = &anEntityFactory;
 }
@@ -35,9 +27,6 @@ void PlayerController::Update(const float& aDeltaTime)
 {
 
 	UpdateControllerData();
-
-
-
 
 	myPlayer->Update(aDeltaTime, myPlayerControllerData);
 
@@ -54,7 +43,6 @@ void PlayerController::Update(const float& aDeltaTime)
 		PlayerCommandData pcd;
 		pcd.playerCommand = ePlayerCommands::SpawnFlower;
 		myPlayer->StoreCommand(pcd);
-		//myEntityFactory->CreateEntity(EntityType::flower, myPlayer->GetPosition());
 	}
 
 	if (myPlayerControllerData.interactAction)
@@ -76,7 +64,8 @@ void PlayerController::UpdateControllerData()
 {
 	myPlayerControllerData.inputDirection = { 0,0 };
 
-	if (isWindowActive == 0) return;
+	if (isWindowActive == 0)
+		return;
 
 	if (GetAsyncKeyState(myInputMapper.up))
 		myPlayerControllerData.inputDirection += { 0, 1 };
@@ -108,7 +97,7 @@ void PlayerController::UpdateControllerData()
 
 int PlayerController::GetClosetFlowerID()
 {
-	auto flowers = myEntityFactory->GetAllEntitiesOfType(EntityType::flower);
+	std::unordered_map<unsigned int, Entity*> flowers = myEntityFactory->GetAllEntitiesOfType(EntityType::flower);
 
 	int closestID = -1;
 	float closest = pickUpDistance;

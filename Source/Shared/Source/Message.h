@@ -38,14 +38,17 @@ namespace TNP
 	inline static const char* MessageTypeNames[]
 	{
 		"error",
+
 		"clientJoin",
 		"clientDisconnect",
 		"clientMessage",
 		"clientSendPosition",
 		"clientSpawnFlower",
 		"clientDestoryFlower",
+
 		"ackMessage",
 		"echoMessage",
+
 		"serverConnectedClientData",
 		"serverClientJoined",
 		"serverClientDisconnected",
@@ -54,6 +57,7 @@ namespace TNP
 		"serverSpawnFlower",
 		"serverDestroyFlower",
 		"updateClients",
+
 		"count"
 	};
 
@@ -73,15 +77,6 @@ namespace TNP
 		Message(const MessageType aType, const int anID) : type(aType),messageID(anID) {}
 		Message(const Message& aMessage) : type(aMessage.type), messageID(aMessage.messageID) {}
 		Message() : type(TNP::MessageType::error) {};
-
-		//Message operator=(const Message& aMessage)
-		//{
-		//	std::swap(type, aMessage.type);
-
-		//	Message msg(aMessage.type);
-		//	msg.messageID = aMessage.messageID;
-		//	return msg;
-		//}
 
 	public:
 		MessageType type;

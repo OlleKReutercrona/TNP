@@ -12,7 +12,7 @@ std::atomic<bool> isRunning = true;
 
 const int Server::CreateID(const int aPort)
 {
-	// This func is funky and not good but I dont care :)))))
+	// This func is funky and not good but I dont care :))))) ;)
 
 	if (myPortToID.size() > 1000) return -1;
 	if (myPortToID.count(aPort) > 0) return -1;
@@ -152,10 +152,6 @@ int Server::Run()
 
 	std::cout << "\nMessage Log: " << std::endl;
 
-	//sockaddr_in clientAddressInformation = {};
-	//static int clientAddrSize = sizeof(clientAddressInformation);
-	//char mySocketBuffer[NETMESSAGE_SIZE];
-
 	if(S_FAIL(StartMessageInThread()))
 	{
 		return SERVER_FAILED;
@@ -179,22 +175,6 @@ int Server::Run()
 		{
 			client.timeSinceLastMessage += deltaTime;
 		}
-
-		//// Clear the buffer.
-		//ZeroMemory(mySocketBuffer, NETMESSAGE_SIZE);
-
-		//// blocking receive. This function will block until a message is received.
-		//const int recv_len = recvfrom(myUDPSocket, mySocketBuffer, NETMESSAGE_SIZE, 0, (sockaddr*)&clientAddressInformation, &clientAddrSize);
-		//if (recv_len == SOCKET_ERROR)
-		//{
-		//	std::cout << "Failed receiving data from socket." << std::endl;
-		//	std::cout << "Error: " << WSAGetLastError() << std::endl;
-		//}
-
-		//if (recv_len > 0)
-		//{
-		//	ProcessMessage(mySocketBuffer, clientAddressInformation);
-		//}
 
 		timeSinceLastTick += deltaTime;
 
@@ -257,7 +237,7 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		break;
 	case TNP::MessageType::clientJoin:
 	{
-		if (myConnectedClients.size() >= 6)
+		if (myConnectedClients.size() >= myClientMaxAmount)
 		{
 			std::cout << "Server is full.\n";
 			return;
@@ -265,8 +245,6 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		TNP::ClientJoin message;
 		message.Deserialize(aMessage);
-
-		//TNP::ClientJoin message = *(TNP::ClientJoin*)&aMessage;
 
 		const int clientID = CreateID(clientPort);
 		if (clientID < 0)
@@ -338,10 +316,6 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 			SendMessageToAClient(connectionMessage, sizeof(connectionMessage), client.myServerID);
 		}
-		//for (size_t i = 0; i < length; i++)
-		//{
-
-		//}
 		SyncAllEntitiesToJoinedClient(client.myServerID);
 		break;
 	}
@@ -349,8 +323,6 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	{
 		TNP::ClientDisconnect message;
 		message.Deserialize(aMessage);
-		//TNP::ClientDisconnect message = *(TNP::ClientDisconnect*)&aMessage;
-
 
 		TNP::ServerClientDisconnected msg;
 		msg.id = myPortToID[clientPort];
@@ -367,11 +339,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	}
 	case TNP::MessageType::clientMessage:
 	{
-		// Maybe not used after assignment 2
-
 		TNP::ClientMessage message;
 		message.Deserialize(aMessage);
-		//TNP::ClientMessage message = *(TNP::ClientMessage*)&aMessage;
 
 		const int clientID = myPortToID.at(clientPort);
 
@@ -383,9 +352,6 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 		msg.id = clientID;
 
 		strcpy_s(msg.message, MESSAGE_MAX_SIZE, message.message);
-
-		//msg.msgSize = sizeof(printmsg);
-		//memcpy(msg.message, printmsg.data(), sizeof(printmsg));
 
 		std::cout << printmsg << std::endl;
 
@@ -411,16 +377,8 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 				data.newPosition = message.position;
 			}
 			myConnectedClients.at(clientID).position = message.position;
-
-			//std::cout << "Client " << clientID << " position: " <<  message.position.x << ", " << message.position.y << "\n";
 			break;
 		}
-
-		// Position was not okay, handle it?
-
-		// TODO - HANDLE IT OLLE
-
-
 		break;
 	}
 	case TNP::MessageType::clientSpawnFlower:
@@ -594,7 +552,6 @@ void Server::SyncClients()
 
 	TNP::UpdateClientsMessage message;
 
-	//char* ptr = &message.data[0];
 	int index = 0;
 	for (auto& [playerID, client] : myUpdateData)
 	{

@@ -14,7 +14,7 @@ void TNP::NetworkDebugStatManager::Update(const float aDT)
 	static float time = 0.0;
 
 	time += aDT;
-	if (time < 1.0f) { return; }
+	if (time < myUpdateTime) { return; }
 	time = 0.0f;
 
 	auto timeNow = std::chrono::high_resolution_clock::now();
@@ -177,9 +177,9 @@ int TNP::NetworkDebugStatManager::UnpackReceivedMessages()
 		{
 			DebugMessage& message = myReceivedMessages[i];
 
-			auto timeSlice = std::chrono::duration<double>(timeNow - message.timeSent).count() / 1000.0f;
+			auto timeSince = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - message.timeSent).count() / 1000.0f;
 
-			if (timeSlice >= myMessageSaveTime)
+			if (timeSince >= myMessageSaveTime)
 			{
 				myReceivedMessages.erase(myReceivedMessages.begin() + i);
 				--i;
@@ -200,12 +200,12 @@ int TNP::NetworkDebugStatManager::UnpackSentMessages()
 	auto timeNow = std::chrono::high_resolution_clock::now();
 
 	int sentDataTotal = 0;
-	int missingPackeges = 0;
+	float missingPackeges = 0.0f;
 	for (auto it = mySentMessages.begin(); it != mySentMessages.end();)
 	{
 		DebugMessage& message = it->second;
 
-		auto timeSince = std::chrono::duration<double>(timeNow - message.timeSent).count() / 1000.0f;
+		auto timeSince = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - message.timeSent).count() / 1000.0f;
 
 		if (timeSince >= myMessageSaveTime)
 		{
@@ -232,7 +232,8 @@ int TNP::NetworkDebugStatManager::UnpackSentMessages()
 		++it;
 	}
 
-	myStats.packetLoss = (int)(((float)missingPackeges / (float)mySentMessages.size()) * 100);
+	float perc = missingPackeges / (float)mySentMessages.size();
+	myStats.packetLoss = (int)perc * 100;
 
 	return sentDataTotal;
 }

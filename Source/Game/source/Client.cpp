@@ -70,13 +70,6 @@ int Client::Start()
 	// This then allows us to use recvfrom as we please because the udpSocket
 	// is already bound for us in an appropriate way.
 
-	//if (C_FAIL(StartInputThread()))
-	//{
-	//	std::cout << "Input thread failed" << std::endl;
-	//	return C_FAILED;
-	//}
-
-
 	return C_SUCCESS;
 }
 
@@ -542,7 +535,6 @@ void Client::HandleUnackedMessages(const float aDT)
 	std::lock_guard<std::mutex> guard(myAckMutex);
 
 	for (auto it = myUnackedMessages.begin(); it != myUnackedMessages.end();)
-	//for (auto& [index, message] : myUnackedMessages)
 	{
 		auto& message = it->second;
 
@@ -556,14 +548,13 @@ void Client::HandleUnackedMessages(const float aDT)
 
 		if (message.myTimeSinceFirstAttempt >= myAckTryAgainTime)
 		{
-			// Register packet loss now
-			myStatManager->RegisterMessageAsPacketLoss(message.myMessage->messageID);
 			it = myUnackedMessages.erase(it);
 			continue;
 		}
 
 		if (message.myTimeSinceLastAttempt > myUnAckedMessageRetryTime)
 		{
+			myStatManager->RegisterMessageAsPacketLoss(message.myMessage->messageID);
 			message.myTimeSinceLastAttempt = 0.0f;
 
 			message.myAttempts++;
@@ -593,6 +584,8 @@ void Client::SendPingMessage()
 
 	TNP::EchoMessage* message = new TNP::EchoMessage();
 	message->messageID = myMessageCounter(static_cast<int>(TNP::MessageType::echoMessage));
+
+	SendAckMessage(*message);
 
 	myStatManager->StorePingMessage(*message);
 

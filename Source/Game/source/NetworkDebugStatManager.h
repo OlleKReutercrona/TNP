@@ -77,7 +77,7 @@ namespace TNP
 
 		int myTimeFilter = 1;
 		float myMessageSaveTime = 2.0f;
-
+		const float myUpdateTime = 0.33f;
 	};
 }
 

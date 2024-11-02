@@ -131,7 +131,7 @@ private:
 	// Ack
 	std::map<unsigned int, UnAckedMessage> myUnackedMessages = {};
 	std::map<unsigned int, AckedMessage> myAckedMessages;
-	const double myUnAckedMessageRetryTime = 0.2f;
+	const double myUnAckedMessageRetryTime = 0.5f;
 	const float myAckMessageSaveTime = 1.0f;
 	const float myAckTryAgainTime = 3.0f;
 

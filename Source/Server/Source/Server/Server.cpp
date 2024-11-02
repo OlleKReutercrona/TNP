@@ -213,6 +213,7 @@ int Server::Run()
 
 			HandleUnAckedMessages(deltaTime);
 			UpdateAckedMessages(deltaTime);
+			UpdateReceivedMessagesTimer(deltaTime);
 		}
 
 	}
@@ -229,9 +230,26 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 	inet_ntop(AF_INET, &someInformation.sin_addr, &clientAddress[0], 16);
 	const int clientPort = ntohs(someInformation.sin_port);
 
-
-
 	TNP::MessageType type = DetermineMessageType(aMessage);
+
+	if (myPortToID.count(clientPort) > 0)
+	{
+		int clientId = myPortToID.at(clientPort);
+		if(myConnectedClients.count(clientId) > 0)
+		{
+			auto& client = myConnectedClients.at(clientId);
+
+			TNP::Message* message = (TNP::Message*)aMessage;
+
+			if (client.myReceivedMessages[type].count(message->messageID) > 0)
+			{
+				// If this messageID has been received from this client in the last [time] dont handle it again.
+				return;
+			}
+
+			client.myReceivedMessages[type][message->messageID] = 0.0f;
+		}
+	}
 
 	switch (type)
 	{
@@ -444,25 +462,39 @@ void Server::ProcessMessage(const char* aMessage, sockaddr_in& someInformation)
 
 		break;
 	}
+	case TNP::MessageType::echoMessage:
+	{
+		TNP::EchoMessage* message = (TNP::EchoMessage*)(aMessage);
+
+		if (ClientData* client = GetClientByPort(clientPort))
+		{
+			//TNP::EchoMessage msg;
+			//msg.messageID = message->messageID;
+			//SendMessageToAClient(msg, sizeof(msg), client->myServerID);
+
+			SendAckMessage(*client, message->messageID);
+			break;
+		}
+		std::cout << "ERROR - Client not found when trying to echo.\n";
+		break;
+	}
 	case TNP::MessageType::ackMessage:
 	{
+		std::lock_guard<std::mutex> guard(myAckMutex);
+
 		TNP::AckMessage* message = (TNP::AckMessage*)(aMessage);
 
 		ClientData* client = GetClientByPort(clientPort);
-		SendAckMessage(*client, message->messageID);
+		if (client == nullptr)
+		{
+			std::cout << "Failed to locate client when acking.\n";
+			break;
+		}
 
-		break;
-	}
-	case TNP::MessageType::echoMessage:
-	{
-		TNP::AckMessage* message = (TNP::AckMessage*)(aMessage);
-
-		auto& client = myConnectedClients.at(myPortToID[clientPort]);
-
-		if (client.myUnackedMessages.count(message->myAckedMessageId) > 0)
+		if (client->myUnackedMessages.count(message->myAckedMessageId) > 0)
 		{
 			// Check here for roundtime and stuff 
-			client.myUnackedMessages.erase(message->myAckedMessageId);
+			client->myUnackedMessages.erase(message->myAckedMessageId);
 		}
 
 		break;
@@ -509,7 +541,10 @@ bool Server::SendMessage(TNP::Message& aMessage, const int aMessageSize, ClientD
 
 #define ACK_MESSAGES
 #ifdef ACK_MESSAGES
-	aClient.myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(aMessage.messageID, { std::make_shared<TNP::Message>(aMessage), aMessageSize }));
+	if (aMessage.type != TNP::MessageType::ackMessage && aMessage.type != TNP::MessageType::echoMessage)
+	{
+		aClient.myUnackedMessages.insert(std::pair<unsigned int, UnAckedMessage>(aMessage.messageID, { std::make_shared<TNP::Message>(aMessage), aMessageSize }));
+	}
 #endif
 	const char* message = (char*)&aMessage;
 
@@ -519,7 +554,7 @@ bool Server::SendMessage(TNP::Message& aMessage, const int aMessageSize, ClientD
 	{
 		std::cout << "Failed to send message\n";
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
-		isRunning = false;
+	/*	isRunning = false;*/
 		return false;
 	}
 	return true;
@@ -621,6 +656,8 @@ void Server::SyncAllEntitiesToJoinedClient(int clientID)
 
 void Server::HandleUnAckedMessages(const float aDT)
 {
+	std::lock_guard<std::mutex> guard(myAckMutex);
+
 	for (auto& [clientID, client] : myConnectedClients)
 	{
 		for (auto& [index, message] : client.myUnackedMessages)
@@ -639,7 +676,26 @@ void Server::HandleUnAckedMessages(const float aDT)
 
 				message.myAttempts++;
 				
-				SendMessageToAClient(*message.myMessage.get(), message.myMesssageSize, clientID);
+ 				SendMessageToAClient(*message.myMessage.get(), message.myMesssageSize, clientID);
+			}
+		}
+	}
+}
+
+void Server::UpdateReceivedMessagesTimer(const float aDT)
+{
+	for (auto& [clientID, client] : myConnectedClients)
+	{
+		for (auto& [type, messageIds] : client.myReceivedMessages)
+		{
+			for (auto it = messageIds.begin(); it != messageIds.end();)
+			{
+				it->second += aDT;
+
+				if (it->second > myReceivedMessageSaveTime)
+				{
+					it = messageIds.erase(it);
+				}
 			}
 		}
 	}
@@ -663,6 +719,7 @@ ClientData* Server::GetClientByPort(const int aPort)
 
 int Server::Shutdown()
 {
+	std::cout << "Server shutting down...\n";
 	myInputThread.join();
 	myMessageThread.join();
 	WSACleanup();

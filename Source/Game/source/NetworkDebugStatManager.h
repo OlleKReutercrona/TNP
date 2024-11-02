@@ -26,7 +26,7 @@ namespace TNP
 
 	struct PingMessage : public DebugMessage
 	{
-		std::chrono::duration<double> ping = {};
+		std::chrono::milliseconds ping = {};
 	};
 
 	struct NetworkMessageStats
@@ -76,7 +76,7 @@ namespace TNP
 		NetworkStats myStats;
 
 		int myTimeFilter = 1;
-		float myMessageSaveTime = 10.0f;
+		float myMessageSaveTime = 2.0f;
 
 	};
 }

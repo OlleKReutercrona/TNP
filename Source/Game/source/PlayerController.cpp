@@ -89,7 +89,6 @@ void PlayerController::UpdateControllerData()
 
 	if (GetAsyncKeyState('K') & 0x01)
 	{
-		std::cout << "Spawn flower\n";
 		myPlayerControllerData.useAction = true;
 	}
 	if (GetAsyncKeyState('L'))

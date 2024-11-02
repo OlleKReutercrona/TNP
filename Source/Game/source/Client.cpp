@@ -486,6 +486,7 @@ int Client::HandleRecievedMessage()
 	case TNP::MessageType::serverSpawnFlower:
 	{
 		TNP::ServerSpawnFlower* msg = (TNP::ServerSpawnFlower*)(mySocketBuffer);
+		std::cout << "Spawn flower [" << msg->id << "]\n";
 
 		size = sizeof(*msg);
 		myEntityFactory->CreateEntity(EntityType::flower, msg->id, msg->position);

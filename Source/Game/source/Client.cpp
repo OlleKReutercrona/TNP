@@ -13,7 +13,7 @@ std::atomic<bool> hasMessage = false;
 
 Client::~Client()
 {
-	//Shutdown();
+
 }
 
 void Client::Init(PlayerManager& aPlayerManager, EntityFactory& aEntityFactory, TNP::NetworkDebugStatManager& aStatManager)

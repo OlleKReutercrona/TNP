@@ -6,6 +6,8 @@
 #include "EntityFactory.h"
 #include "Entity.h"
 
+#include "imgui/imgui.h"
+
 PlayerController::PlayerController(Player* aPlayer, EntityFactory& anEntityFactory)
 {
 	myPlayer = aPlayer;
@@ -76,11 +78,11 @@ void PlayerController::UpdateControllerData()
 	if (GetAsyncKeyState(myInputMapper.right))
 		myPlayerControllerData.inputDirection += {  1, 0 };
 
-	if (GetAsyncKeyState('K') & 0x01)
+	if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_K, false))
 	{
 		myPlayerControllerData.useAction = true;
 	}
-	if (GetAsyncKeyState('L'))
+	if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_L, false))
 	{
 		myPlayerControllerData.interactAction = true;
 	}

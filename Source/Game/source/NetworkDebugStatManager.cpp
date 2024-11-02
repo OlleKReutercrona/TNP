@@ -134,6 +134,9 @@ void TNP::NetworkDebugStatManager::DisplayDebugStats()
 
 	ImGui::Begin("Network debug stats");
 	{
+		ImGui::SliderFloat("Message Save Time", &myMessageSaveTime, 1.0f, 10.0f);
+		ImGui::SliderFloat("Debug Tracker Update Time", &myUpdateTime, 0.1f, 1.0f);
+
 		ImGui::Text("Ping: %4.2f ms", myStats.RTT);
 		std::string sizeStr;
 		float size = printDataFormated(myStats.sentDPS, sizeStr);

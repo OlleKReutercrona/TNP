@@ -35,7 +35,7 @@ class Player
 public:
 	Player();
 	~Player() = default;
-	void Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition, bool aIsPlayerOne);
+	void Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition);
 	void SetUsername(std::string aUsername);
 
 
@@ -43,9 +43,6 @@ public:
 	void Render(Tga::SpriteDrawer& aSpriteDrawer);
 	void DebugRender(Tga::DebugDrawer& aDebugDrawer);
 
-
-
-	void ExecuteCommand(PlayerCommandData aCommand);
 	void StoreCommand(PlayerCommandData aCommand);
 	bool HasCommands();
 	void ClearCommands();
@@ -55,15 +52,9 @@ public:
 	const inline int GetPID() { return myServerPID; }
 	const inline Tga::Vector2f& GetPosition() { return myPosition; }
 
-	const bool& GetIsPlayerOne()
-	{
-		return myIsPlayerOne;
-	}
 
-
-
-	int debugColor = 0;
 	Tga::Color debugCColor;
+	int debugColor = 0;
 private:
 	std::vector<PlayerCommandData> myCommands;
 	Tga::Vector2f myPosition;	
@@ -71,6 +62,5 @@ private:
 	UsernameData myUsernameData;
 	float myMovementSpeed;
 	int myServerPID = -1;
-	bool myIsPlayerOne;
 
 };

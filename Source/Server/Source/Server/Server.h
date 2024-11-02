@@ -122,4 +122,5 @@ private:
 	const float myClientDisconnectTime = 1.0f;
 	const double myUnAckedMessageRetryTime = 0.2f;
 	const float myAckMessageSaveTime = 1.0f;
+	const int myClientMaxAmount = 6;
 };

@@ -13,9 +13,12 @@ Player* PlayerManager::CreatePlayer(const unsigned int aServerID, const Tga::Col
 
 	Player* p = myPlayers.at(aServerID);
 
-	p->Init(aServerID, aColour, aStartPosition, isLocalPlayer);
+	p->Init(aServerID, aColour, aStartPosition);
 
-	if (isLocalPlayer) myLocalPlayer = p;
+	if (isLocalPlayer)
+	{
+		myLocalPlayer = p;
+	}
 
 	return p;
 }
@@ -32,7 +35,8 @@ Player* PlayerManager::GetLocalPlayer()
 
 bool PlayerManager::UpdatePlayer(const unsigned int aServerID, const UpdatePlayerData& someData)
 {
-	if (myPlayers.count(aServerID) == 0) return false;
+	if (myPlayers.count(aServerID) == 0) 
+		return false;
 
 	myPlayers.at(aServerID)->myPosition = someData.aPosition;
 
@@ -41,7 +45,8 @@ bool PlayerManager::UpdatePlayer(const unsigned int aServerID, const UpdatePlaye
 
 bool PlayerManager::DeletePlayer(const unsigned int anID)
 {
-	if (myPlayers.count(anID) == 0) return false;
+	if (myPlayers.count(anID) == 0) 
+		return false;
 
 	delete myPlayers.at(anID);
 

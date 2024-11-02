@@ -8,17 +8,15 @@
 
 Player::Player()
 {
-	myIsPlayerOne = true;
 	myMovementSpeed = 300.f;
 	myPosition = { 0,0 };
 }
 
-void Player::Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition, bool aIsPlayer)
+void Player::Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vector2f aStartPosition)
 {
 	myServerPID = anID;
 
 	myPosition = aStartPosition;
-	myIsPlayerOne = aIsPlayer;
 	auto& engine = *Tga::Engine::GetInstance();
 	mySpriteData.sharedDataBody.myTexture = engine.GetTextureManager().GetTexture(L"Sprites/noHat.dds");
 	mySpriteData.sharedDataHat.myTexture = engine.GetTextureManager().GetTexture(L"Sprites/hatAndMust.dds");
@@ -26,18 +24,14 @@ void Player::Init(const unsigned int anID, const Tga::Color& aColour, Tga::Vecto
 
 	mySpriteData.instanceDataHat.mySize = mySpriteData.sharedDataHat.myTexture->CalculateTextureSize() / 3.0f;
 	mySpriteData.instanceDataBody.mySize = mySpriteData.sharedDataHat.myTexture->CalculateTextureSize() / 3.0f;
-	//mySpriteData.instanceData.myPivot = { mySpriteData.instanceData.mySize.x / 2, mySpriteData.instanceData.mySize.y / 2 };
 	
 	mySpriteData.instanceDataHat.myPosition = myPosition;
 	mySpriteData.instanceDataBody.myPosition = myPosition;
 
 	mySpriteData.instanceDataHat.myColor = aColour;
 
-	if (aIsPlayer)
-	{
-		myUsernameData.text.SetColor({ 0, 1, 0, 1 });
-	}
 
+	myUsernameData.text.SetColor({ 0, 1, 0, 1 });
 }
 
 void Player::SetUsername(std::string aUsername)
@@ -67,35 +61,6 @@ void Player::DebugRender(Tga::DebugDrawer& aDebugDrawer)
 	aDebugDrawer.DrawCircle(mySpriteData.instanceDataHat.myPosition + mySpriteData.instanceDataHat.myPivot, 10.f, { 0,1,1,1 });
 }
 
-void Player::ExecuteCommand(PlayerCommandData aCommand)
-{
-	switch (aCommand.playerCommand)
-	{
-	case ePlayerCommands::Move:
-	{
-
-		break;
-	}
-	case ePlayerCommands::Interact:
-	{
-
-		break;
-	}	
-	case ePlayerCommands::SpawnFlower:
-	{
-		
-		break;
-	}
-	case ePlayerCommands::SetColor:
-	{
-
-		break;
-	}	
-	default:
-		break;
-	}
-
-}
 
 void Player::StoreCommand(PlayerCommandData aCommand)
 {

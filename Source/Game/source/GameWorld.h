@@ -41,15 +41,15 @@ private:
 	PlayerController* myController = nullptr;
 	Client myClient;
 
-	MessageThreadData myMessageThreadData;
 
 	std::unordered_map<int, Player*> myOtherClients;
 
-	bool isRunning = true;
 	Tga::InputManager* myInputManager;
 
 	Tga::Text* myDisplayText;
 	Tga::Text* myInputText;
 
 	Tga::Vector2f myResolution;
+	MessageThreadData myMessageThreadData;
+	bool isRunning = true;
 };

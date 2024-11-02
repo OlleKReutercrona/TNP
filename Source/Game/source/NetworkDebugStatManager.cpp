@@ -64,6 +64,7 @@ void TNP::NetworkDebugStatManager::StorePingMessage(const TNP::Message& aMessage
 
 	auto& statMSG = myUnackedPingMessages[aMessage.messageID];
 
+	statMSG.message = aMessage;
 	statMSG.timeSent = std::chrono::high_resolution_clock::now();
 }
 
@@ -75,7 +76,7 @@ void TNP::NetworkDebugStatManager::ReceivePingMessage(const int aMessageID)
 	}
 
 	auto& ackedMSG = myAckedPingMessages[aMessageID];
-	ackedMSG.ping = std::chrono::high_resolution_clock::now() - myUnackedPingMessages[aMessageID].timeSent;
+	ackedMSG.ping = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - myUnackedPingMessages[aMessageID].timeSent);
 	ackedMSG.timeSent = std::chrono::high_resolution_clock::now();
 
 	myUnackedPingMessages.erase(aMessageID);
@@ -247,7 +248,7 @@ double TNP::NetworkDebugStatManager::UnpackPingMessages()
 	{
 		PingMessage& message = it->second;
 
-		auto timeSince = std::chrono::duration<double>(timeNow - message.timeSent).count() / 1000.0f;
+		auto timeSince = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - message.timeSent).count() / 1000.0f;
 
 		if (timeSince >= myMessageSaveTime)
 		{

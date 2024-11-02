@@ -21,6 +21,13 @@ struct ClientData
 	sockaddr_in sockaddr = {};
 	TNP::CircularBuffer<TNP::ClientMovedMessage> myMessageBuffer = {};
 
+	/* Container for received message. 
+	Key1: messagetype
+	Value1: map with messageIds
+	Key2: messageId
+	Value2: time since received
+	*/
+	std::map<TNP::MessageType, std::map<int, float>> myReceivedMessages;
 	std::map<unsigned int, UnAckedMessage> myUnackedMessages = {};
 
 	float timeSinceLastMessage = 0.0f;
@@ -97,6 +104,8 @@ private:
 
 	void HandleUnAckedMessages(const float aDT);
 
+	void UpdateReceivedMessagesTimer(const float aDT);
+
 	ClientData* GetClientByPort(const int aPort);
 
 	int myEntityIds = 0;
@@ -119,8 +128,10 @@ private:
 
 	sockaddr_in myBindAddressInformation = {};
 
-	const float myClientDisconnectTime = 1.0f;
+	const float myClientDisconnectTime = 5.0f;
 	const double myUnAckedMessageRetryTime = 0.2f;
 	const float myAckMessageSaveTime = 1.0f;
+	const float myReceivedMessageSaveTime = 2.5f;
+
 	const int myClientMaxAmount = 6;
 };
